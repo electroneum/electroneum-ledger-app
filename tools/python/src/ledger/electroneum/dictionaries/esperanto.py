@@ -1039,7 +1039,7 @@ words = {
       u"mokadi",
       u"molaro",
       u"momento",
-      u"monero",
+      u"electroneum",
       u"mopso",
       u"mordi",
       u"moskito",

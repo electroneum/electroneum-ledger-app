@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef MONERO_TYPES_H
-#define MONERO_TYPES_H
+#ifndef electroneum_TYPES_H
+#define electroneum_TYPES_H
 
 #include "os_io_seproxyhal.h"
 
@@ -30,15 +30,15 @@
 /* cannot send more that F0 bytes in CCID, why? do not know for now
  *  So set up length to F0 minus 2 bytes for SW
  */
-#define MONERO_APDU_LENGTH                       0xFE
+#define electroneum_APDU_LENGTH                       0xFE
 
 
 /* big private DO */
-#define MONERO_EXT_PRIVATE_DO_LENGTH             512
+#define electroneum_EXT_PRIVATE_DO_LENGTH             512
 /* will be fixed..1024 is not enougth */
-#define MONERO_EXT_CARD_HOLDER_CERT_LENTH        2560
+#define electroneum_EXT_CARD_HOLDER_CERT_LENTH        2560
 /* random choice */
-#define MONERO_EXT_CHALLENGE_LENTH               254
+#define electroneum_EXT_CHALLENGE_LENTH               254
 
 /* --- ... --- */
 #define MAINNET_CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX             18
@@ -60,7 +60,7 @@ enum network_type {
     FAKECHAIN
 };
 
-struct monero_nv_state_s {
+struct electroneum_nv_state_s {
   /* magic */
   unsigned char magic[8];
 
@@ -85,9 +85,9 @@ struct monero_nv_state_s {
 
 } ;
 
-typedef struct monero_nv_state_s monero_nv_state_t;
+typedef struct electroneum_nv_state_s electroneum_nv_state_t;
 
-#define MONERO_IO_BUFFER_LENGTH (300)
+#define electroneum_IO_BUFFER_LENGTH (300)
 enum device_mode {
   NONE,
   TRANSACTION_CREATE_REAL,
@@ -95,7 +95,7 @@ enum device_mode {
   TRANSACTION_PARSE
 };
 
-struct monero_v_state_s {
+struct electroneum_v_state_s {
   unsigned char   state;
   unsigned char   protocol;
 
@@ -113,7 +113,7 @@ struct monero_v_state_s {
   unsigned short  io_length;
   unsigned short  io_offset;
   unsigned short  io_mark;
-  unsigned char   io_buffer[MONERO_IO_BUFFER_LENGTH];
+  unsigned char   io_buffer[electroneum_IO_BUFFER_LENGTH];
 
 
   unsigned int    options;
@@ -166,7 +166,7 @@ struct monero_v_state_s {
   /* ------------------------------------------ */
   union {
     struct {
-      /* menu 0: 95-chars + "<monero: >"  + null */
+      /* menu 0: 95-chars + "<electroneum: >"  + null */
       char            ux_menu[112];
       // address to display: 95-chars + null
       char            ux_address[96];
@@ -178,12 +178,12 @@ struct monero_v_state_s {
     };
   };
 };
-typedef struct  monero_v_state_s monero_v_state_t;
+typedef struct  electroneum_v_state_s electroneum_v_state_t;
 
 
 
 
-#define SIZEOF_TX_VSTATE   (sizeof(monero_v_state_t) - OFFSETOF(monero_v_state_t, state))
+#define SIZEOF_TX_VSTATE   (sizeof(electroneum_v_state_t) - OFFSETOF(electroneum_v_state_t, state))
 
 
 #define STATE_IDLE                          0xC0

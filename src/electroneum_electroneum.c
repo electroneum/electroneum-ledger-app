@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 #include "os.h"
-#include "monero_types.h"
-#include "monero_api.h"
-#include "monero_vars.h"
+#include "electroneum_types.h"
+#include "electroneum_api.h"
+#include "electroneum_vars.h"
 
 const unsigned char C_MAINNET_NETWORK_ID[] = {
     0x12 ,0x30, 0xF1, 0x71 , 0x61, 0x04 , 0x41, 0x61, 0x17, 0x31, 0x00, 0x82, 0x16, 0xA1, 0xA1, 0x10
@@ -93,13 +93,13 @@ static void encode_block(const unsigned char* block, unsigned int  size,  char* 
     }
 }
 
-int monero_base58_public_key(char* str_b58, unsigned char *view, unsigned char *spend, unsigned char is_subbadress) {
+int electroneum_base58_public_key(char* str_b58, unsigned char *view, unsigned char *spend, unsigned char is_subbadress) {
     unsigned char data[72];
     unsigned int offset;
     unsigned int prefix;
 
-    //data[0] = N_monero_pstate->network_id;
-    switch(N_monero_pstate->network_id) {
+    //data[0] = N_electroneum_pstate->network_id;
+    switch(N_electroneum_pstate->network_id) {
         case TESTNET:
             prefix = is_subbadress ? TESTNET_CRYPTONOTE_PUBLIC_SUBADDRESS_BASE58_PREFIX : TESTNET_CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX;
             break;
@@ -110,12 +110,12 @@ int monero_base58_public_key(char* str_b58, unsigned char *view, unsigned char *
             prefix = is_subbadress ? MAINNET_CRYPTONOTE_PUBLIC_SUBADDRESS_BASE58_PREFIX : MAINNET_CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX;
             break;
     }
-    offset = monero_encode_varint(data, prefix);
+    offset = electroneum_encode_varint(data, prefix);
     
     os_memmove(data+offset,spend,32);
     os_memmove(data+offset+32,view,32);
-    monero_keccak_F(data, offset+64, G_monero_vstate.H);
-    os_memmove(data+offset+32+32, G_monero_vstate.H, 4);
+    electroneum_keccak_F(data, offset+64, G_electroneum_vstate.H);
+    os_memmove(data+offset+32+32, G_electroneum_vstate.H, 4);
 
     unsigned int full_block_count = (offset+32+32+4) / FULL_BLOCK_SIZE;
     unsigned int last_block_size  = (offset+32+32+4) % FULL_BLOCK_SIZE;

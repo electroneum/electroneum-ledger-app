@@ -13,18 +13,23 @@
  * limitations under the License.
  */
 
-#ifndef MONERO_UX_MSG_H
-#define MONERO_UX_MSG_H
+#include "os.h"
+#include "cx.h"
+#include "electroneum_types.h"
+#include "electroneum_api.h"
+#include "electroneum_vars.h"
 
-extern const char * const C_OK;
-extern const char * const C_NOK;
+#include "os_io_seproxyhal.h"
 
-
-#define PICSTR(x)     ((char*)PIC(x))
-
-
-#define OK                PICSTR(C_OK)
-#define NOK               PICSTR(C_NOK)
-
+#ifndef electroneum_DEBUG_MAIN
+unsigned char G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
+ux_state_t ux;
+#else
+extern unsigned char G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
+int apdu_n;
 
 #endif
+
+
+electroneum_v_state_t  G_electroneum_vstate;
+

@@ -12,11 +12,11 @@ Note:
 
 Setup has to be done only once, or to restart from fresh config.
 
-Take care to note all your monero seeds when generating standard wallet.
+Take care to note all your electroneum seeds when generating standard wallet.
 
 `>:` denotes the shell prompt
 
-`[...]: ` denotes the Monero client prompt
+`[...]: ` denotes the electroneum client prompt
 
 
 Daemon setup
@@ -31,7 +31,7 @@ Or you can use the ones running on altcoin02.node.production.gra.ledger.fr.
 **Ledger Daemon setup**
 
 
-A restricted monero daemon runs on ledger server, you can use it with
+A restricted electroneum daemon runs on ledger server, you can use it with
 
 **Login:**
 
@@ -51,31 +51,31 @@ Request the LOGIN info to cedric@ledger.fr
 Client setup
 ------------
 
-Download client CLI from getmonero.org
+Download client CLI from getelectroneum.org
 
 Unzip the content in a directory of your choice.
 
 Open a Terminal and jump in this directory.
 
-You should have a directory named monero-v0.x.y.z, eg: `monero-v0.14.0.2`
+You should have a directory named electroneum-v0.x.y.z, eg: `electroneum-v0.14.0.2`
 
 you can set a variable to that version:
 
-    >: MONERO=./monero-v0.14.0.2/monero-wallet-cli
+    >: electroneum=./electroneum-v0.14.0.2/electroneum-wallet-cli
 
 
 Create two wallets
 ------------------
 
 
-Launch the ledger Monero appocation the device. In `settings->Change Network`, select `stagenet` or `mainnet`
+Launch the ledger electroneum appocation the device. In `settings->Change Network`, select `stagenet` or `mainnet`
 depending the network you are on.
 
 Create a ledger wallet,  in a shell type:
 
     >:  mkdir -p wallets/device
 
-    >: ${MONERO} \
+    >: ${electroneum} \
         ${DAEMON} \
         ${LOGIN} \
         --log-level 4 \
@@ -89,7 +89,7 @@ Create a std-wallet, in a shell type:
 
     >: mkdir -p wallets/std
 
-    >: ${MONERO} \
+    >: ${electroneum} \
         ${DAEMON} \
         ${LOGIN} \
         --log-level 4 \
@@ -111,7 +111,7 @@ For restoring a std wallet add  `--restore-deterministic-wallet`  option to the 
 Create sub address
 ------------------
 
-At monero prompt type:
+At electroneum prompt type:
 
     [...]: address new
     [...]: address new
@@ -143,7 +143,7 @@ Finalize Config and Save All
 Open existing wallet
 ====================
 
-    >: ${MONERO} \
+    >: ${electroneum} \
          ${XMR_DAEMON} \
          ${XMR_LOGIN} \
          --log-level 4 \
@@ -152,7 +152,7 @@ Open existing wallet
 
 or
 
-    >: ${MONERO} \
+    >: ${electroneum} \
          ${XMR_DAEMON} \
          ${XMR_LOGIN} \
          --log-level 4 \

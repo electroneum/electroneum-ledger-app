@@ -1,3 +1,4 @@
+
 /* Copyright 2017 Cedric Mesnil <cslashm@gmail.com>, Ledger SAS
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,23 +14,13 @@
  * limitations under the License.
  */
 
-#include "os.h"
-#include "cx.h"
-#include "monero_types.h"
-#include "monero_api.h"
-#include "monero_vars.h"
 
-#include "os_io_seproxyhal.h"
+#ifndef electroneum_UX_NANOS_H
+#define electroneum_UX_NANOS_H
 
-#ifndef MONERO_DEBUG_MAIN
-unsigned char G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
-ux_state_t ux;
-#else
-extern unsigned char G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
-int apdu_n;
+void ui_init(void);
+void ui_main_display(unsigned int value);
+void electroneum_ux_user_validation();
+void ui_export_viewkey_display(unsigned int value);
 
 #endif
-
-
-monero_v_state_t  G_monero_vstate;
-

@@ -13,24 +13,18 @@
  * limitations under the License.
  */
 
-#ifndef MONERO_VARS_H
-#define MONERO_VARS_H
+#ifndef electroneum_UX_MSG_H
+#define electroneum_UX_MSG_H
 
-#include "os.h"
-#include "cx.h"
-#include "os_io_seproxyhal.h"
-#include "monero_types.h"
-#include "monero_api.h"
+extern const char * const C_OK;
+extern const char * const C_NOK;
 
 
-extern monero_v_state_t  G_monero_vstate;
-extern monero_nv_state_t N_state_pic;
-#define N_monero_pstate  ((WIDE  monero_nv_state_t *)PIC(&N_state_pic))
+#define PICSTR(x)     ((char*)PIC(x))
 
 
-#ifdef MONERO_DEBUG_MAIN
-extern int apdu_n;
-#endif
+#define OK                PICSTR(C_OK)
+#define NOK               PICSTR(C_NOK)
 
-extern ux_state_t ux;
+
 #endif

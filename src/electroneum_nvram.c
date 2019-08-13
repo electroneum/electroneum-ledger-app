@@ -15,8 +15,8 @@
 
 #include "os.h"
 #include "cx.h"
-#include "monero_types.h"
-#include "monero_api.h"
-#include "monero_vars.h"
+#include "electroneum_types.h"
+#include "electroneum_api.h"
+#include "electroneum_vars.h"
 
-monero_nv_state_t N_state_pic;
+electroneum_nv_state_t N_state_pic;

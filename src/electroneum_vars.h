@@ -1,4 +1,3 @@
-
 /* Copyright 2017 Cedric Mesnil <cslashm@gmail.com>, Ledger SAS
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,13 +13,24 @@
  * limitations under the License.
  */
 
+#ifndef electroneum_VARS_H
+#define electroneum_VARS_H
 
-#ifndef MONERO_UX_NANOS_H
-#define MONERO_UX_NANOS_H
+#include "os.h"
+#include "cx.h"
+#include "os_io_seproxyhal.h"
+#include "electroneum_types.h"
+#include "electroneum_api.h"
 
-void ui_init(void);
-void ui_main_display(unsigned int value);
-void monero_ux_user_validation();
-void ui_export_viewkey_display(unsigned int value);
 
+extern electroneum_v_state_t  G_electroneum_vstate;
+extern electroneum_nv_state_t N_state_pic;
+#define N_electroneum_pstate  ((WIDE  electroneum_nv_state_t *)PIC(&N_state_pic))
+
+
+#ifdef electroneum_DEBUG_MAIN
+extern int apdu_n;
+#endif
+
+extern ux_state_t ux;
 #endif

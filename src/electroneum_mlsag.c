@@ -15,15 +15,15 @@
 
 #include "os.h"
 #include "cx.h"
-#include "monero_types.h"
-#include "monero_api.h"
-#include "monero_ux_nanos.h"
-#include "monero_vars.h"
+#include "electroneum_types.h"
+#include "electroneum_api.h"
+#include "electroneum_ux_nanos.h"
+#include "electroneum_vars.h"
 
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-int monero_apdu_mlsag_prepare() {
+int electroneum_apdu_mlsag_prepare() {
     int options;
     unsigned char Hi[32];
     unsigned char xin[32];
@@ -31,36 +31,36 @@ int monero_apdu_mlsag_prepare() {
     unsigned char mul[32];
 
 
-    if (G_monero_vstate.io_length>1) {        
-        monero_io_fetch(Hi,32);
-        if(G_monero_vstate.options &0x40) {
-            monero_io_fetch(xin,32);
+    if (G_electroneum_vstate.io_length>1) {
+        electroneum_io_fetch(Hi,32);
+        if(G_electroneum_vstate.options &0x40) {
+            electroneum_io_fetch(xin,32);
         } else { 
-           monero_io_fetch_decrypt(xin,32); 
+           electroneum_io_fetch_decrypt(xin,32);
         }
         options = 1;
     }  else {
         options = 0;
     }
 
-    monero_io_discard(1);
+    electroneum_io_discard(1);
     
     //ai
-    monero_rng(alpha, 32);
-    monero_reduce(alpha, alpha);
-    monero_io_insert_encrypt(alpha, 32);
+    electroneum_rng(alpha, 32);
+    electroneum_reduce(alpha, alpha);
+    electroneum_io_insert_encrypt(alpha, 32);
 
     //ai.G
-    monero_ecmul_G(mul, alpha);
-    monero_io_insert(mul,32);
+    electroneum_ecmul_G(mul, alpha);
+    electroneum_io_insert(mul,32);
        
     if (options) {
         //ai.Hi
-        monero_ecmul_k(mul, Hi, alpha);
-        monero_io_insert(mul,32);
+        electroneum_ecmul_k(mul, Hi, alpha);
+        electroneum_io_insert(mul,32);
         //IIi = xin.Hi
-        monero_ecmul_k(mul, Hi, xin);
-        monero_io_insert(mul,32);
+        electroneum_ecmul_k(mul, Hi, xin);
+        electroneum_io_insert(mul,32);
     }
 
     return SW_OK;
@@ -69,23 +69,23 @@ int monero_apdu_mlsag_prepare() {
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-int monero_apdu_mlsag_hash() {
+int electroneum_apdu_mlsag_hash() {
     unsigned char msg[32];
     unsigned char c[32];
-    if (G_monero_vstate.io_p2 == 1) {
-        monero_keccak_init_H();
-        os_memmove(msg, G_monero_vstate.H, 32);
+    if (G_electroneum_vstate.io_p2 == 1) {
+        electroneum_keccak_init_H();
+        os_memmove(msg, G_electroneum_vstate.H, 32);
     } else {
-        monero_io_fetch(msg, 32);
+        electroneum_io_fetch(msg, 32);
     }
-    monero_io_discard(1);
+    electroneum_io_discard(1);
 
-    monero_keccak_update_H(msg, 32);
-    if ((G_monero_vstate.options&0x80) == 0 ) {
-        monero_keccak_final_H(c);
-        monero_reduce(c,c);
-        monero_io_insert(c,32);
-        os_memmove(G_monero_vstate.c, c, 32);
+    electroneum_keccak_update_H(msg, 32);
+    if ((G_electroneum_vstate.options&0x80) == 0 ) {
+        electroneum_keccak_final_H(c);
+        electroneum_reduce(c,c);
+        electroneum_io_insert(c,32);
+        os_memmove(G_electroneum_vstate.c, c, 32);
     }  
     return SW_OK;
 }
@@ -93,27 +93,27 @@ int monero_apdu_mlsag_hash() {
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-int monero_apdu_mlsag_sign() {
+int electroneum_apdu_mlsag_sign() {
     unsigned char xin[32];
     unsigned char alpha[32];
     unsigned char ss[32];
     unsigned char ss2[32];
     
-    if (G_monero_vstate.sig_mode == TRANSACTION_CREATE_FAKE) {
-        monero_io_fetch(xin,32);
-        monero_io_fetch(alpha,32);
-    } else if (G_monero_vstate.sig_mode == TRANSACTION_CREATE_REAL) {
-        monero_io_fetch_decrypt(xin,32); 
-        monero_io_fetch_decrypt(alpha,32);
+    if (G_electroneum_vstate.sig_mode == TRANSACTION_CREATE_FAKE) {
+        electroneum_io_fetch(xin,32);
+        electroneum_io_fetch(alpha,32);
+    } else if (G_electroneum_vstate.sig_mode == TRANSACTION_CREATE_REAL) {
+        electroneum_io_fetch_decrypt(xin,32);
+        electroneum_io_fetch_decrypt(alpha,32);
     } else {
         THROW(SW_WRONG_DATA);
     }
-    monero_io_discard(1);
+    electroneum_io_discard(1);
 
-    monero_multm(ss, G_monero_vstate.c, xin);
-    monero_subm(ss2, alpha, ss);
+    electroneum_multm(ss, G_electroneum_vstate.c, xin);
+    electroneum_subm(ss2, alpha, ss);
 
-    monero_io_insert(ss2,32);
-    monero_io_insert_u32(G_monero_vstate.sig_mode);
+    electroneum_io_insert(ss2,32);
+    electroneum_io_insert_u32(G_electroneum_vstate.sig_mode);
     return SW_OK;
 }

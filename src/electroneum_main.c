@@ -13,16 +13,16 @@
  * limitations under the License.
  */
 
-#ifndef MONERO_DEBUG_MAIN
+#ifndef electroneum_DEBUG_MAIN
 
 #include "os.h"
 #include "cx.h"
-#include "monero_types.h"
-#include "monero_api.h"
-#include "monero_vars.h"
+#include "electroneum_types.h"
+#include "electroneum_api.h"
+#include "electroneum_vars.h"
 
-#include "monero_ux_nanos.h"
-//#include "monero_ux_blue.h"
+#include "electroneum_ux_nanos.h"
+//#include "electroneum_ux_blue.h"
 
 #include "os_io_seproxyhal.h"
 #include "string.h"
@@ -33,22 +33,22 @@
 /* ---                            Application Entry                    --- */
 /* ----------------------------------------------------------------------- */
 
-void monero_main(void) {
+void electroneum_main(void) {
   unsigned int io_flags;
   io_flags = 0;
   for (;;) {
     volatile unsigned short sw = 0;
     BEGIN_TRY {
       TRY {
-        monero_io_do(io_flags);
-        sw = monero_dispatch();
+        electroneum_io_do(io_flags);
+        sw = electroneum_dispatch();
       }
       CATCH_OTHER(e) {
-        monero_io_discard(1);
-        monero_reset_tx();
+        electroneum_io_discard(1);
+        electroneum_reset_tx();
         if ( (e & 0xFFFF0000) ||
              ( ((e&0xF000)!=0x6000) && ((e&0xF000)!=0x9000) ) ) {
-          monero_io_insert_u32(e);
+          electroneum_io_insert_u32(e);
           sw = 0x6f42;
         } else {
           sw = e;
@@ -56,7 +56,7 @@ void monero_main(void) {
       }
       FINALLY {
         if (sw) {
-          monero_io_insert_u16(sw);
+          electroneum_io_insert_u16(sw);
           io_flags = 0;
         } else {
           io_flags = IO_ASYNCH_REPLY;
@@ -116,10 +116,10 @@ unsigned char io_event(unsigned char channel) {
   
   if (s_before!=s_after) {
     if (s_after == PIN_VERIFIED) {
-      monero_init_private_key();
+      electroneum_init_private_key();
     } else {
       ;//do nothing, allowing TX parsing in lock mode 
-      //monero_wipe_private_key();
+      //electroneum_wipe_private_key();
     }
   }
   
@@ -190,7 +190,7 @@ __attribute__((section(".boot"))) int main(void) {
   
 
         //set up
-        monero_init();
+        electroneum_init();
   
         //set up initial screen
         ui_init();
@@ -202,7 +202,7 @@ __attribute__((section(".boot"))) int main(void) {
         // - display the  initial screen
         // - send the ATR
         // - receive the first command
-        monero_main();
+        electroneum_main();
       }
       CATCH(EXCEPTION_IO_RESET) {
                 // reset IO and UX

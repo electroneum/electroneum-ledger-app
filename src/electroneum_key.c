@@ -15,9 +15,9 @@
 
 #include "os.h"
 #include "cx.h"
-#include "monero_types.h"
-#include "monero_api.h"
-#include "monero_vars.h"
+#include "electroneum_types.h"
+#include "electroneum_api.h"
+#include "electroneum_vars.h"
 
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
@@ -61,7 +61,7 @@ static const unsigned int crcTable[256] = {
    0xCDD70693,0x54DE5729,0x23D967BF,0xB3667A2E,0xC4614AB8,0x5D681B02,0x2A6F2B94,
    0xB40BBE37,0xC30C8EA1,0x5A05DF1B,0x2D02EF8D };
 
-static unsigned long monero_crc32( unsigned long inCrc32, const void *buf,
+static unsigned long electroneum_crc32( unsigned long inCrc32, const void *buf,
                                        size_t bufLen )
 {
 
@@ -79,9 +79,9 @@ static unsigned long monero_crc32( unsigned long inCrc32, const void *buf,
 }
 
 
-void monero_clear_words() {
+void electroneum_clear_words() {
   for (int i = 0; i<25; i++) {
-    monero_nvm_write(N_monero_pstate->words[i], NULL,WORDS_MAX_LENGTH);
+    electroneum_nvm_write(N_electroneum_pstate->words[i], NULL,WORDS_MAX_LENGTH);
   }
 }
 /**
@@ -92,11 +92,11 @@ void monero_clear_words() {
  * len : word_list length
  */
 
-static void  monero_set_word(unsigned int n, unsigned int idx, unsigned int w_start, unsigned char* word_list, int len) {
+static void  electroneum_set_word(unsigned int n, unsigned int idx, unsigned int w_start, unsigned char* word_list, int len) {
   while (w_start < idx) {
     len -= 1 + word_list[0];
     if (len < 0) {
-      monero_clear_words();
+      electroneum_clear_words();
       THROW(SW_WRONG_DATA+1);
       return;
     }
@@ -110,20 +110,20 @@ static void  monero_set_word(unsigned int n, unsigned int idx, unsigned int w_st
   }
   len = word_list[0];
   word_list++;
-  monero_nvm_write(N_monero_pstate->words[n], word_list, len);
+  electroneum_nvm_write(N_electroneum_pstate->words[n], word_list, len);
 }
 
 #define word_list_length 1626
-#define seed G_monero_vstate.b
+#define seed G_electroneum_vstate.b
 
-int monero_apdu_manage_seedwords() {
+int electroneum_apdu_manage_seedwords() {
   unsigned int w_start, w_end;
   unsigned short wc[4];
-  switch (G_monero_vstate.io_p1) {
+  switch (G_electroneum_vstate.io_p1) {
     //SETUP
   case 1:
-    w_start = monero_io_fetch_u32();
-    w_end   = w_start+monero_io_fetch_u32();
+    w_start = electroneum_io_fetch_u32();
+    w_end   = w_start+electroneum_io_fetch_u32();
     if ((w_start >= word_list_length) || (w_end > word_list_length) || (w_start > w_end)) {
       THROW(SW_WRONG_DATA);
       return SW_WRONG_DATA;
@@ -136,28 +136,28 @@ int monero_apdu_manage_seedwords() {
 
       for (int wi = 0; wi < 3; wi++) {
         if ((wc[wi] >= w_start) && (wc[wi] < w_end)) {
-          monero_set_word(i*3+wi, wc[wi], w_start, G_monero_vstate.io_buffer+G_monero_vstate.io_offset, MONERO_IO_BUFFER_LENGTH-G_monero_vstate.io_offset);
+          electroneum_set_word(i*3+wi, wc[wi], w_start, G_electroneum_vstate.io_buffer+G_electroneum_vstate.io_offset, electroneum_IO_BUFFER_LENGTH-G_electroneum_vstate.io_offset);
         }
       }
     }
 
-    monero_io_discard(1);
-    if (G_monero_vstate.io_p2) {
+    electroneum_io_discard(1);
+    if (G_electroneum_vstate.io_p2) {
       for (int i = 0; i<24; i++) {
-        for (int j = 0; j<G_monero_vstate.io_p2; j++) {
-          G_monero_vstate.io_buffer[i*G_monero_vstate.io_p2+j] = N_monero_pstate->words[i][j];
+        for (int j = 0; j<G_electroneum_vstate.io_p2; j++) {
+          G_electroneum_vstate.io_buffer[i*G_electroneum_vstate.io_p2+j] = N_electroneum_pstate->words[i][j];
         }
       }
-      w_start = monero_crc32(0, G_monero_vstate.io_buffer, G_monero_vstate.io_p2*24)%24;
-      monero_nvm_write(N_monero_pstate->words[24], N_monero_pstate->words[w_start], WORDS_MAX_LENGTH);
+      w_start = electroneum_crc32(0, G_electroneum_vstate.io_buffer, G_electroneum_vstate.io_p2*24)%24;
+      electroneum_nvm_write(N_electroneum_pstate->words[24], N_electroneum_pstate->words[w_start], WORDS_MAX_LENGTH);
     }
 
     break;
 
     //CLEAR
   case 2:
-    monero_io_discard(0);
-    monero_clear_words();
+    electroneum_io_discard(0);
+    electroneum_clear_words();
     break;
   }
 
@@ -169,44 +169,44 @@ int monero_apdu_manage_seedwords() {
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-int monero_apdu_put_key() {
+int electroneum_apdu_put_key() {
 
 
   unsigned char raw[32];
   unsigned char pub[32];
   unsigned char sec[32];
 
-  if (G_monero_vstate.io_length != (32*2 + 32*2 + 95)) {
+  if (G_electroneum_vstate.io_length != (32*2 + 32*2 + 95)) {
     THROW(SW_WRONG_LENGTH);
     return SW_WRONG_LENGTH;
   }
 
   //view key
-  monero_io_fetch(sec, 32);
-  monero_io_fetch(pub, 32);
-  monero_ecmul_G(raw,sec);
+  electroneum_io_fetch(sec, 32);
+  electroneum_io_fetch(pub, 32);
+  electroneum_ecmul_G(raw,sec);
   if (os_memcmp(pub, raw, 32)) {
     THROW(SW_WRONG_DATA);
     return SW_WRONG_DATA;
   }
-  nvm_write(N_monero_pstate->a, sec, 32);
+  nvm_write(N_electroneum_pstate->a, sec, 32);
 
   //spend key
-  monero_io_fetch(sec, 32);
-  monero_io_fetch(pub, 32);
-  monero_ecmul_G(raw,sec);
+  electroneum_io_fetch(sec, 32);
+  electroneum_io_fetch(pub, 32);
+  electroneum_ecmul_G(raw,sec);
   if (os_memcmp(pub, raw, 32)) {
     THROW(SW_WRONG_DATA);
     return SW_WRONG_DATA;
   }
-  nvm_write(N_monero_pstate->b, sec, 32);
+  nvm_write(N_electroneum_pstate->b, sec, 32);
 
 
   //change mode
   unsigned char key_mode = KEY_MODE_EXTERNAL;
-  nvm_write(&N_monero_pstate->key_mode, &key_mode, 1);
+  nvm_write(&N_electroneum_pstate->key_mode, &key_mode, 1);
 
-  monero_io_discard(1);
+  electroneum_io_discard(1);
 
   return SW_OK;
 }
@@ -215,19 +215,19 @@ int monero_apdu_put_key() {
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-int monero_apdu_get_key() {
+int electroneum_apdu_get_key() {
 
-  monero_io_discard(1);
-  switch (G_monero_vstate.io_p1) {
+  electroneum_io_discard(1);
+  switch (G_electroneum_vstate.io_p1) {
   //get pub
   case 1:
     //view key
-    monero_io_insert(G_monero_vstate.A, 32);
+    electroneum_io_insert(G_electroneum_vstate.A, 32);
     //spend key
-    monero_io_insert(G_monero_vstate.B, 32);
+    electroneum_io_insert(G_electroneum_vstate.B, 32);
     //public base address
-    monero_base58_public_key((char*)G_monero_vstate.io_buffer+G_monero_vstate.io_offset, G_monero_vstate.A, G_monero_vstate.B, 0);
-    monero_io_inserted(95);
+    electroneum_base58_public_key((char*)G_electroneum_vstate.io_buffer+G_electroneum_vstate.io_offset, G_electroneum_vstate.A, G_electroneum_vstate.B, 0);
+    electroneum_io_inserted(95);
     break;
 
   //get private
@@ -249,11 +249,11 @@ int monero_apdu_get_key() {
     path[3] = 0x00000000;
     path[4] = 0x00000000;
 
-    os_perso_derive_node_bip32(CX_CURVE_SECP256K1, path, 5 , seed, G_monero_vstate.a);
-    monero_io_insert(seed, 32);
+    os_perso_derive_node_bip32(CX_CURVE_SECP256K1, path, 5 , seed, G_electroneum_vstate.a);
+    electroneum_io_insert(seed, 32);
 
-    monero_io_insert(G_monero_vstate.b, 32);
-    monero_io_insert(G_monero_vstate.a, 32);
+    electroneum_io_insert(G_electroneum_vstate.b, 32);
+    electroneum_io_insert(G_electroneum_vstate.a, 32);
 
     break;
     }
@@ -269,23 +269,23 @@ int monero_apdu_get_key() {
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-int monero_apdu_verify_key() {
+int electroneum_apdu_verify_key() {
   unsigned char pub[32];
   unsigned char priv[32];
   unsigned char computed_pub[32];
   unsigned int verified = 0;
 
-  monero_io_fetch_decrypt_key(priv);
-  monero_io_fetch(pub, 32);
-  switch (G_monero_vstate.io_p1) {
+  electroneum_io_fetch_decrypt_key(priv);
+  electroneum_io_fetch(pub, 32);
+  switch (G_electroneum_vstate.io_p1) {
   case 0:
-    monero_secret_key_to_public_key(computed_pub, priv);
+    electroneum_secret_key_to_public_key(computed_pub, priv);
     break;
   case 1:
-    os_memmove(pub, G_monero_vstate.A, 32);
+    os_memmove(pub, G_electroneum_vstate.A, 32);
     break;
   case 2:
-    os_memmove(pub, G_monero_vstate.B, 32);
+    os_memmove(pub, G_electroneum_vstate.B, 32);
     break;
   default:
     THROW(SW_WRONG_P1P2);
@@ -295,8 +295,8 @@ int monero_apdu_verify_key() {
     verified = 1;
   }
 
-  monero_io_discard(1);
-  monero_io_insert_u32(verified);
+  electroneum_io_discard(1);
+  electroneum_io_insert_u32(verified);
   return SW_OK;
 }
 
@@ -306,16 +306,16 @@ int monero_apdu_verify_key() {
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
 #define CHACHA8_KEY_TAIL 0x8c
-int monero_apdu_get_chacha8_prekey(/*char  *prekey*/) {
+int electroneum_apdu_get_chacha8_prekey(/*char  *prekey*/) {
   unsigned char abt[65];
   unsigned char pre[32];
 
-  monero_io_discard(0);
-  os_memmove(abt, G_monero_vstate.a, 32);
-  os_memmove(abt+32, G_monero_vstate.b, 32);
+  electroneum_io_discard(0);
+  os_memmove(abt, G_electroneum_vstate.a, 32);
+  os_memmove(abt+32, G_electroneum_vstate.b, 32);
   abt[64] = CHACHA8_KEY_TAIL;
-  monero_keccak_F(abt, 65, pre);
-  monero_io_insert((unsigned char*)G_monero_vstate.keccakF.acc, 200);
+  electroneum_keccak_F(abt, 65, pre);
+  electroneum_io_insert((unsigned char*)G_electroneum_vstate.keccakF.acc, 200);
   return SW_OK;
 }
 #undef CHACHA8_KEY_TAIL
@@ -323,32 +323,32 @@ int monero_apdu_get_chacha8_prekey(/*char  *prekey*/) {
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-int monero_apdu_sc_add(/*unsigned char *r, unsigned char *s1, unsigned char *s2*/) {
+int electroneum_apdu_sc_add(/*unsigned char *r, unsigned char *s1, unsigned char *s2*/) {
   unsigned char s1[32];
   unsigned char s2[32];
   unsigned char r[32];
   //fetch
-  monero_io_fetch_decrypt(s1,32);
-  monero_io_fetch_decrypt(s2,32);
-  monero_io_discard(0);
-  monero_addm(r,s1,s2);
-  monero_io_insert_encrypt(r,32);
+  electroneum_io_fetch_decrypt(s1,32);
+  electroneum_io_fetch_decrypt(s2,32);
+  electroneum_io_discard(0);
+  electroneum_addm(r,s1,s2);
+  electroneum_io_insert_encrypt(r,32);
   return SW_OK;
 }
 
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-int monero_apdu_sc_sub(/*unsigned char *r, unsigned char *s1, unsigned char *s2*/) {
+int electroneum_apdu_sc_sub(/*unsigned char *r, unsigned char *s1, unsigned char *s2*/) {
   unsigned char s1[32];
   unsigned char s2[32];
   unsigned char r[32];
   //fetch
-  monero_io_fetch_decrypt(s1,32);
-  monero_io_fetch_decrypt(s2,32);
-  monero_io_discard(0);
-  monero_subm(r,s1,s2);
-  monero_io_insert_encrypt(r,32);
+  electroneum_io_fetch_decrypt(s1,32);
+  electroneum_io_fetch_decrypt(s2,32);
+  electroneum_io_discard(0);
+  electroneum_subm(r,s1,s2);
+  electroneum_io_insert_encrypt(r,32);
   return SW_OK;
 }
 
@@ -356,46 +356,46 @@ int monero_apdu_sc_sub(/*unsigned char *r, unsigned char *s1, unsigned char *s2*
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-int monero_apdu_scal_mul_key(/*const rct::key &pub, const rct::key &sec, rct::key mulkey*/) {
+int electroneum_apdu_scal_mul_key(/*const rct::key &pub, const rct::key &sec, rct::key mulkey*/) {
   unsigned char pub[32];
   unsigned char sec[32];
   unsigned char r[32];
   //fetch
-  monero_io_fetch(pub,32);
-  monero_io_fetch_decrypt_key(sec);
-  monero_io_discard(0);
+  electroneum_io_fetch(pub,32);
+  electroneum_io_fetch_decrypt_key(sec);
+  electroneum_io_discard(0);
 
-  monero_ecmul_k(r,pub,sec);
-  monero_io_insert(r, 32);
+  electroneum_ecmul_k(r,pub,sec);
+  electroneum_io_insert(r, 32);
   return SW_OK;
 }
 
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-int monero_apdu_scal_mul_base(/*const rct::key &sec, rct::key mulkey*/) {
+int electroneum_apdu_scal_mul_base(/*const rct::key &sec, rct::key mulkey*/) {
   unsigned char sec[32];
   unsigned char r[32];
   //fetch
-  monero_io_fetch_decrypt(sec,32);
-  monero_io_discard(0);
+  electroneum_io_fetch_decrypt(sec,32);
+  electroneum_io_discard(0);
 
-  monero_ecmul_G(r,sec);
-  monero_io_insert(r, 32);
+  electroneum_ecmul_G(r,sec);
+  electroneum_io_insert(r, 32);
   return SW_OK;
 }
 
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-int monero_apdu_generate_keypair(/*crypto::public_key &pub, crypto::secret_key &sec*/) {
+int electroneum_apdu_generate_keypair(/*crypto::public_key &pub, crypto::secret_key &sec*/) {
   unsigned char sec[32];
   unsigned char pub[32];
 
-  monero_io_discard(0);
-  monero_generate_keypair(pub,sec);
-  monero_io_insert(pub,32);
-  monero_io_insert_encrypt(sec,32);
+  electroneum_io_discard(0);
+  electroneum_generate_keypair(pub,sec);
+  electroneum_io_insert(pub,32);
+  electroneum_io_insert_encrypt(sec,32);
   return SW_OK;
 }
 
@@ -403,186 +403,186 @@ int monero_apdu_generate_keypair(/*crypto::public_key &pub, crypto::secret_key &
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-int monero_apdu_secret_key_to_public_key(/*const crypto::secret_key &sec, crypto::public_key &pub*/) {
+int electroneum_apdu_secret_key_to_public_key(/*const crypto::secret_key &sec, crypto::public_key &pub*/) {
   unsigned char sec[32];
   unsigned char pub[32];
   //fetch
-  monero_io_fetch_decrypt(sec,32);
-  monero_io_discard(0);
+  electroneum_io_fetch_decrypt(sec,32);
+  electroneum_io_discard(0);
   //pub
-  monero_ecmul_G(pub,sec);
+  electroneum_ecmul_G(pub,sec);
   //pub key
-  monero_io_insert(pub,32);
+  electroneum_io_insert(pub,32);
   return SW_OK;
 }
 
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-int monero_apdu_generate_key_derivation(/*const crypto::public_key &pub, const crypto::secret_key &sec, crypto::key_derivation &derivation*/) {
+int electroneum_apdu_generate_key_derivation(/*const crypto::public_key &pub, const crypto::secret_key &sec, crypto::key_derivation &derivation*/) {
   unsigned char pub[32];
   unsigned char sec[32];
   unsigned char drv[32];
   //fetch
-  monero_io_fetch(pub,32);
-  monero_io_fetch_decrypt_key(sec);
+  electroneum_io_fetch(pub,32);
+  electroneum_io_fetch_decrypt_key(sec);
 
-  monero_io_discard(0);
+  electroneum_io_discard(0);
 
   //Derive  and keep
-  monero_generate_key_derivation(drv, pub, sec);
+  electroneum_generate_key_derivation(drv, pub, sec);
 
-  monero_io_insert_encrypt(drv,32);
+  electroneum_io_insert_encrypt(drv,32);
   return SW_OK;
 }
 
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-int monero_apdu_derivation_to_scalar(/*const crypto::key_derivation &derivation, const size_t output_index, ec_scalar &res*/) {
+int electroneum_apdu_derivation_to_scalar(/*const crypto::key_derivation &derivation, const size_t output_index, ec_scalar &res*/) {
   unsigned char derivation[32];
   unsigned int  output_index;
   unsigned char res[32];
 
   //fetch
-  monero_io_fetch_decrypt(derivation,32);
-  output_index = monero_io_fetch_u32();
-  monero_io_discard(0);
+  electroneum_io_fetch_decrypt(derivation,32);
+  output_index = electroneum_io_fetch_u32();
+  electroneum_io_discard(0);
 
   //pub
-  monero_derivation_to_scalar(res, derivation, output_index);
+  electroneum_derivation_to_scalar(res, derivation, output_index);
 
   //pub key
-  monero_io_insert_encrypt(res,32);
+  electroneum_io_insert_encrypt(res,32);
   return SW_OK;
 }
 
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-int monero_apdu_derive_public_key(/*const crypto::key_derivation &derivation, const std::size_t output_index, const crypto::public_key &pub, public_key &derived_pub*/) {
+int electroneum_apdu_derive_public_key(/*const crypto::key_derivation &derivation, const std::size_t output_index, const crypto::public_key &pub, public_key &derived_pub*/) {
   unsigned char derivation[32];
   unsigned int  output_index;
   unsigned char pub[32];
   unsigned char drvpub[32];
 
   //fetch
-  monero_io_fetch_decrypt(derivation,32);
-  output_index = monero_io_fetch_u32();
-  monero_io_fetch(pub, 32);
-  monero_io_discard(0);
+  electroneum_io_fetch_decrypt(derivation,32);
+  output_index = electroneum_io_fetch_u32();
+  electroneum_io_fetch(pub, 32);
+  electroneum_io_discard(0);
 
   //pub
-  monero_derive_public_key(drvpub, derivation, output_index, pub);
+  electroneum_derive_public_key(drvpub, derivation, output_index, pub);
 
   //pub key
-  monero_io_insert(drvpub,32);
+  electroneum_io_insert(drvpub,32);
   return SW_OK;
 }
 
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-int monero_apdu_derive_secret_key(/*const crypto::key_derivation &derivation, const std::size_t output_index, const crypto::secret_key &sec, secret_key &derived_sec*/){
+int electroneum_apdu_derive_secret_key(/*const crypto::key_derivation &derivation, const std::size_t output_index, const crypto::secret_key &sec, secret_key &derived_sec*/){
   unsigned char derivation[32];
   unsigned int  output_index;
   unsigned char sec[32];
   unsigned char drvsec[32];
 
   //fetch
-  monero_io_fetch_decrypt(derivation,32);
-  output_index = monero_io_fetch_u32();
-  monero_io_fetch_decrypt_key(sec);
-  monero_io_discard(0);
+  electroneum_io_fetch_decrypt(derivation,32);
+  output_index = electroneum_io_fetch_u32();
+  electroneum_io_fetch_decrypt_key(sec);
+  electroneum_io_discard(0);
 
   //pub
-  monero_derive_secret_key(drvsec, derivation, output_index, sec);
+  electroneum_derive_secret_key(drvsec, derivation, output_index, sec);
 
   //pub key
-  monero_io_insert_encrypt(drvsec,32);
+  electroneum_io_insert_encrypt(drvsec,32);
   return SW_OK;
 }
 
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-int monero_apdu_generate_key_image(/*const crypto::public_key &pub, const crypto::secret_key &sec, crypto::key_image &image*/){
+int electroneum_apdu_generate_key_image(/*const crypto::public_key &pub, const crypto::secret_key &sec, crypto::key_image &image*/){
   unsigned char pub[32];
   unsigned char sec[32];
   unsigned char image[32];
 
   //fetch
-  monero_io_fetch(pub,32);
-  monero_io_fetch_decrypt(sec, 32);
-  monero_io_discard(0);
+  electroneum_io_fetch(pub,32);
+  electroneum_io_fetch_decrypt(sec, 32);
+  electroneum_io_discard(0);
 
   //pub
-  monero_generate_key_image(image, pub, sec);
+  electroneum_generate_key_image(image, pub, sec);
 
   //pub key
-  monero_io_insert(image,32);
+  electroneum_io_insert(image,32);
   return SW_OK;
 }
 
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-int monero_apdu_derive_subaddress_public_key(/*const crypto::public_key &pub, const crypto::key_derivation &derivation, const std::size_t output_index, public_key &derived_pub*/) {
+int electroneum_apdu_derive_subaddress_public_key(/*const crypto::public_key &pub, const crypto::key_derivation &derivation, const std::size_t output_index, public_key &derived_pub*/) {
   unsigned char pub[32];
   unsigned char derivation[32];
   unsigned int  output_index;
   unsigned char sub_pub[32];
 
   //fetch
-  monero_io_fetch(pub,32);
-  monero_io_fetch_decrypt(derivation, 32);
-  output_index = monero_io_fetch_u32();
-  monero_io_discard(0);
+  electroneum_io_fetch(pub,32);
+  electroneum_io_fetch_decrypt(derivation, 32);
+  output_index = electroneum_io_fetch_u32();
+  electroneum_io_discard(0);
 
   //pub
-  monero_derive_subaddress_public_key(sub_pub, pub, derivation, output_index);
+  electroneum_derive_subaddress_public_key(sub_pub, pub, derivation, output_index);
   //pub key
-  monero_io_insert(sub_pub,32);
+  electroneum_io_insert(sub_pub,32);
   return SW_OK;
 }
 
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-int monero_apdu_get_subaddress(/*const cryptonote::subaddress_index& index, cryptonote::account_public_address &address*/) {
+int electroneum_apdu_get_subaddress(/*const cryptonote::subaddress_index& index, cryptonote::account_public_address &address*/) {
   unsigned char index[8];
   unsigned char C[32];
   unsigned char D[32];
 
   //fetch
-  monero_io_fetch(index,8);
-  monero_io_discard(0);
+  electroneum_io_fetch(index,8);
+  electroneum_io_discard(0);
 
   //pub
-  monero_get_subaddress(C,D,index);
+  electroneum_get_subaddress(C,D,index);
 
   //pub key
-  monero_io_insert(C,32);
-  monero_io_insert(D,32);
+  electroneum_io_insert(C,32);
+  electroneum_io_insert(D,32);
   return SW_OK;
 }
 
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-int monero_apdu_get_subaddress_spend_public_key(/*const cryptonote::subaddress_index& index, crypto::public_key D*/) {
+int electroneum_apdu_get_subaddress_spend_public_key(/*const cryptonote::subaddress_index& index, crypto::public_key D*/) {
   unsigned char index[8];
   unsigned char D[32];
 
   //fetch
-  monero_io_fetch(index,8);
-  monero_io_discard(1);
+  electroneum_io_fetch(index,8);
+  electroneum_io_discard(1);
 
   //pub
-  monero_get_subaddress_spend_public_key(D, index);
+  electroneum_get_subaddress_spend_public_key(D, index);
 
   //pub key
-  monero_io_insert(D,32);
+  electroneum_io_insert(D,32);
 
   return SW_OK;
 }
@@ -590,20 +590,20 @@ int monero_apdu_get_subaddress_spend_public_key(/*const cryptonote::subaddress_i
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-int monero_apdu_get_subaddress_secret_key(/*const crypto::secret_key& sec, const cryptonote::subaddress_index& index, crypto::secret_key &sub_sec*/) {
+int electroneum_apdu_get_subaddress_secret_key(/*const crypto::secret_key& sec, const cryptonote::subaddress_index& index, crypto::secret_key &sub_sec*/) {
   unsigned char sec[32];
   unsigned char index[8];
   unsigned char sub_sec[32];
 
-  monero_io_fetch_decrypt_key(sec);
-  monero_io_fetch(index,8);
-  monero_io_discard(0);
+  electroneum_io_fetch_decrypt_key(sec);
+  electroneum_io_fetch(index,8);
+  electroneum_io_discard(0);
 
   //pub
-  monero_get_subaddress_secret_key(sub_sec,sec,index);
+  electroneum_get_subaddress_secret_key(sub_sec,sec,index);
 
   //pub key
-  monero_io_insert_encrypt(sub_sec,32);
+  electroneum_io_insert_encrypt(sub_sec,32);
   return SW_OK;
 }
 
@@ -612,7 +612,7 @@ int monero_apdu_get_subaddress_secret_key(/*const crypto::secret_key& sec, const
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
 
-int monero_apu_generate_txout_keys(/*size_t tx_version, crypto::secret_key tx_sec, crypto::public_key Aout, crypto::public_key Bout, size_t output_index, bool is_change, bool is_subaddress, bool need_additional_key*/) {
+int electroneum_apu_generate_txout_keys(/*size_t tx_version, crypto::secret_key tx_sec, crypto::public_key Aout, crypto::public_key Bout, size_t output_index, bool is_change, bool is_subaddress, bool need_additional_key*/) {
   //IN
   unsigned int  tx_version;
   unsigned char tx_key[32];
@@ -632,38 +632,38 @@ int monero_apu_generate_txout_keys(/*size_t tx_version, crypto::secret_key tx_se
   unsigned char derivation[32];
 
 
-  tx_version = monero_io_fetch_u32();
-  monero_io_fetch_decrypt_key(tx_key);
-  txkey_pub = G_monero_vstate.io_buffer+G_monero_vstate.io_offset; monero_io_fetch(NULL,32);
-  Aout = G_monero_vstate.io_buffer+G_monero_vstate.io_offset;   monero_io_fetch(NULL,32);
-  Bout = G_monero_vstate.io_buffer+G_monero_vstate.io_offset;   monero_io_fetch(NULL,32);
-  output_index = monero_io_fetch_u32();
-  is_change = monero_io_fetch_u8();
-  is_subaddress = monero_io_fetch_u8();
-  need_additional_txkeys = monero_io_fetch_u8();
+  tx_version = electroneum_io_fetch_u32();
+  electroneum_io_fetch_decrypt_key(tx_key);
+  txkey_pub = G_electroneum_vstate.io_buffer+G_electroneum_vstate.io_offset; electroneum_io_fetch(NULL,32);
+  Aout = G_electroneum_vstate.io_buffer+G_electroneum_vstate.io_offset;   electroneum_io_fetch(NULL,32);
+  Bout = G_electroneum_vstate.io_buffer+G_electroneum_vstate.io_offset;   electroneum_io_fetch(NULL,32);
+  output_index = electroneum_io_fetch_u32();
+  is_change = electroneum_io_fetch_u8();
+  is_subaddress = electroneum_io_fetch_u8();
+  need_additional_txkeys = electroneum_io_fetch_u8();
   if (need_additional_txkeys) {
-    monero_io_fetch_decrypt_key(additional_txkey_sec);
+    electroneum_io_fetch_decrypt_key(additional_txkey_sec);
   } else {
-    monero_io_fetch(NULL,32);
+    electroneum_io_fetch(NULL,32);
   }
 
 
 
   //update outkeys hash control
-  if (G_monero_vstate.sig_mode == TRANSACTION_CREATE_REAL) {
-    if (G_monero_vstate.io_protocol_version == 2) {
-      monero_sha256_outkeys_update(Aout,32);
-      monero_sha256_outkeys_update(Bout,32);
-      monero_sha256_outkeys_update(&is_change,1);
+  if (G_electroneum_vstate.sig_mode == TRANSACTION_CREATE_REAL) {
+    if (G_electroneum_vstate.io_protocol_version == 2) {
+      electroneum_sha256_outkeys_update(Aout,32);
+      electroneum_sha256_outkeys_update(Bout,32);
+      electroneum_sha256_outkeys_update(&is_change,1);
     }
   }
 
   // make additional tx pubkey if necessary
   if (need_additional_txkeys) {
     if (is_subaddress) {
-      monero_ecmul_k(additional_txkey_pub, Bout, additional_txkey_sec);
+      electroneum_ecmul_k(additional_txkey_pub, Bout, additional_txkey_sec);
     } else {
-      monero_ecmul_G(additional_txkey_pub, additional_txkey_sec);
+      electroneum_ecmul_G(additional_txkey_pub, additional_txkey_sec);
     }
   } else {
       os_memset(additional_txkey_pub, 0, 32);
@@ -671,28 +671,28 @@ int monero_apu_generate_txout_keys(/*size_t tx_version, crypto::secret_key tx_se
 
   //derivation
   if (is_change) {
-    monero_generate_key_derivation(derivation, txkey_pub, G_monero_vstate.a);
+    electroneum_generate_key_derivation(derivation, txkey_pub, G_electroneum_vstate.a);
   } else {
-    monero_generate_key_derivation(derivation, Aout, (is_subaddress && need_additional_txkeys) ? additional_txkey_sec : tx_key);
+    electroneum_generate_key_derivation(derivation, Aout, (is_subaddress && need_additional_txkeys) ? additional_txkey_sec : tx_key);
   }
 
   //compute amount key AKout (scalar1), version is always greater than 1
-  monero_derivation_to_scalar(amount_key, derivation, output_index);
-  if (G_monero_vstate.sig_mode == TRANSACTION_CREATE_REAL) {
-      if (G_monero_vstate.io_protocol_version == 2) {
-        monero_sha256_outkeys_update(amount_key,32);
+  electroneum_derivation_to_scalar(amount_key, derivation, output_index);
+  if (G_electroneum_vstate.sig_mode == TRANSACTION_CREATE_REAL) {
+      if (G_electroneum_vstate.io_protocol_version == 2) {
+        electroneum_sha256_outkeys_update(amount_key,32);
       }
   }
 
   //compute ephemeral output key
-  monero_derive_public_key(out_eph_public_key, derivation, output_index, Bout);
+  electroneum_derive_public_key(out_eph_public_key, derivation, output_index, Bout);
 
   //send all
-  monero_io_discard(0);
-  monero_io_insert_encrypt(amount_key,32);
-  monero_io_insert(out_eph_public_key, 32);
+  electroneum_io_discard(0);
+  electroneum_io_insert_encrypt(amount_key,32);
+  electroneum_io_insert(out_eph_public_key, 32);
   if (need_additional_txkeys) {
-    monero_io_insert(additional_txkey_pub, 32);
+    electroneum_io_insert(additional_txkey_pub, 32);
   }
   return SW_OK;
 }

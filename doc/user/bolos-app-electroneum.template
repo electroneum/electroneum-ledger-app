@@ -200,7 +200,7 @@ $header-includes$
 $endfor$
 
 
-\title{Monero Application}
+\title{electroneum Application}
 \author{Cedric Mesnil cedric@ledger.fr}
 \date{$date$}
 
@@ -209,7 +209,7 @@ $endfor$
 \begin{titlepage}
   \centering
 %  \includegraphics[width=0.15\textwidth]{example-image-1x1}\par\vspace{1cm}
-  {\scshape\LARGE Monero Application \par}
+  {\scshape\LARGE electroneum Application \par}
   {\scshape \LARGE User Guide \par}
   \vspace{1cm}
   

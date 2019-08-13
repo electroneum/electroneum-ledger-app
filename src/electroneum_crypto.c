@@ -15,9 +15,9 @@
 
 #include "os.h"
 #include "cx.h"
-#include "monero_types.h"
-#include "monero_api.h"
-#include "monero_vars.h"
+#include "electroneum_types.h"
+#include "electroneum_api.h"
+#include "electroneum_vars.h"
 
 
 /* ----------------------------------------------------------------------- */
@@ -55,30 +55,30 @@ unsigned char const C_EIGHT[32] = {
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-void monero_aes_derive(cx_aes_key_t *sk, unsigned char* seed32, unsigned char *a, unsigned char *b) {
+void electroneum_aes_derive(cx_aes_key_t *sk, unsigned char* seed32, unsigned char *a, unsigned char *b) {
     unsigned char  h1[32];
 
-    monero_keccak_init_H();
-    monero_keccak_update_H(seed32, 32);
-    monero_keccak_update_H(a, 32);
-    monero_keccak_update_H(b, 32);
-    monero_keccak_final_H(h1);
+    electroneum_keccak_init_H();
+    electroneum_keccak_update_H(seed32, 32);
+    electroneum_keccak_update_H(a, 32);
+    electroneum_keccak_update_H(b, 32);
+    electroneum_keccak_final_H(h1);
 
-    monero_keccak_H(h1,32,h1);
+    electroneum_keccak_H(h1,32,h1);
 
     cx_aes_init_key(h1,16,sk);
 }
 
-void monero_aes_generate(cx_aes_key_t *sk) {
+void electroneum_aes_generate(cx_aes_key_t *sk) {
     unsigned char  h1[16];
-    monero_rng(h1,16);
+    electroneum_rng(h1,16);
     cx_aes_init_key(h1,16,sk);
 }
 
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-unsigned int monero_encode_varint(unsigned char varint[8], unsigned int out_idx) {
+unsigned int electroneum_encode_varint(unsigned char varint[8], unsigned int out_idx) {
     unsigned int len;
     len = 0;
     while(out_idx >= 0x80) {
@@ -94,7 +94,7 @@ unsigned int monero_encode_varint(unsigned char varint[8], unsigned int out_idx)
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-void monero_reverse32(unsigned char *rscal, unsigned char *scal) {
+void electroneum_reverse32(unsigned char *rscal, unsigned char *scal) {
     unsigned char x;
     unsigned int i;
     for (i = 0; i<16; i++) {
@@ -107,32 +107,32 @@ void monero_reverse32(unsigned char *rscal, unsigned char *scal) {
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-void monero_hash_init_sha256(cx_hash_t * hasher) {
+void electroneum_hash_init_sha256(cx_hash_t * hasher) {
     cx_sha256_init((cx_sha256_t *)hasher);
 }
 
-void monero_hash_init_keccak(cx_hash_t * hasher) {
+void electroneum_hash_init_keccak(cx_hash_t * hasher) {
     cx_keccak_init((cx_sha3_t *)hasher, 256);
 }
 
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-void monero_hash_update(cx_hash_t * hasher, unsigned char* buf, unsigned int len) {
+void electroneum_hash_update(cx_hash_t * hasher, unsigned char* buf, unsigned int len) {
     cx_hash(hasher, 0, buf, len, NULL, 0);
 }
 
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-int monero_hash_final(cx_hash_t * hasher, unsigned char* out) {
+int electroneum_hash_final(cx_hash_t * hasher, unsigned char* out) {
     return cx_hash(hasher, CX_LAST, NULL, 0, out, 32);
 }
 
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-int monero_hash(unsigned int algo, cx_hash_t * hasher, unsigned char* buf, unsigned int len, unsigned char* out) {
+int electroneum_hash(unsigned int algo, cx_hash_t * hasher, unsigned char* buf, unsigned int len, unsigned char* out) {
     hasher->algo = algo;
     if (algo == CX_SHA256) {
          cx_sha256_init((cx_sha256_t *)hasher);
@@ -145,8 +145,8 @@ int monero_hash(unsigned int algo, cx_hash_t * hasher, unsigned char* buf, unsig
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-/* thanks to knaccc and moneromoo help on IRC #monero-research-lab */
-/* From Monero code
+/* thanks to knaccc and electroneummoo help on IRC #electroneum-research-lab */
+/* From electroneum code
  *
  *  fe_sq2(v, u);            // 2 * u^2
  *  fe_1(w);
@@ -254,7 +254,7 @@ const unsigned char C_fe_qm5div8[] = {
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfd
 };
 
-static void monero_ge_fromfe_frombytes(unsigned char *ge , unsigned char *bytes) {
+static void electroneum_ge_fromfe_frombytes(unsigned char *ge , unsigned char *bytes) {
 
     #define  MOD (unsigned char *)C_ED25519_FIELD,32
     #define fe_isnegative(f)      (f[31]&1)
@@ -275,18 +275,18 @@ static void monero_ge_fromfe_frombytes(unsigned char *ge , unsigned char *bytes)
 
     #define Pxy   uv._Pxy
 #else
-    #define u   (G_monero_vstate.io_buffer+0*32)
-    #define v   (G_monero_vstate.io_buffer+1*32)
-    #define w   (G_monero_vstate.io_buffer+2*32)
-    #define x   (G_monero_vstate.io_buffer+3*32)
-    #define y   (G_monero_vstate.io_buffer+4*32)
-    #define z   (G_monero_vstate.io_buffer+5*32)
-    #define rX  (G_monero_vstate.io_buffer+6*32)
-    #define rY  (G_monero_vstate.io_buffer+7*32)
-    #define rZ  (G_monero_vstate.io_buffer+8*32)
+    #define u   (G_electroneum_vstate.io_buffer+0*32)
+    #define v   (G_electroneum_vstate.io_buffer+1*32)
+    #define w   (G_electroneum_vstate.io_buffer+2*32)
+    #define x   (G_electroneum_vstate.io_buffer+3*32)
+    #define y   (G_electroneum_vstate.io_buffer+4*32)
+    #define z   (G_electroneum_vstate.io_buffer+5*32)
+    #define rX  (G_electroneum_vstate.io_buffer+6*32)
+    #define rY  (G_electroneum_vstate.io_buffer+7*32)
+    #define rZ  (G_electroneum_vstate.io_buffer+8*32)
 
-    //#define uv7 (G_monero_vstate.io_buffer+9*32)
-    //#define v3  (G_monero_vstate.io_buffer+10*32)
+    //#define uv7 (G_electroneum_vstate.io_buffer+9*32)
+    //#define v3  (G_electroneum_vstate.io_buffer+10*32)
     union {
         unsigned char _Pxy[65];
         struct {
@@ -302,15 +302,15 @@ static void monero_ge_fromfe_frombytes(unsigned char *ge , unsigned char *bytes)
 
     #define Pxy   uv._Pxy
 
-#if MONERO_IO_BUFFER_LENGTH < (9*32)
-#error  MONERO_IO_BUFFER_LENGTH is too small
+#if electroneum_IO_BUFFER_LENGTH < (9*32)
+#error  electroneum_IO_BUFFER_LENGTH is too small
 #endif
 #endif
 
     unsigned char sign;
 
     //cx works in BE
-    monero_reverse32(u,bytes);
+    electroneum_reverse32(u,bytes);
     cx_math_modm(u, 32, (unsigned char *)C_ED25519_FIELD, 32);
 
     //go on
@@ -380,7 +380,7 @@ static void monero_ge_fromfe_frombytes(unsigned char *ge , unsigned char *bytes)
    cx_math_subm(rY, z, w, MOD);
    cx_math_multm(rX, rX, rZ, MOD);
 
-   //back to monero y-affine
+   //back to electroneum y-affine
    cx_math_invprimem(u, rZ, MOD);
    Pxy[0] = 0x04;
    cx_math_multm(&Pxy[1],    rX, u, MOD);
@@ -411,92 +411,92 @@ static void monero_ge_fromfe_frombytes(unsigned char *ge , unsigned char *bytes)
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-void monero_hash_to_scalar(unsigned char *scalar, unsigned char *raw, unsigned int raw_len) {
-    monero_keccak_F(raw,raw_len,scalar);
-    monero_reduce(scalar, scalar);
+void electroneum_hash_to_scalar(unsigned char *scalar, unsigned char *raw, unsigned int raw_len) {
+    electroneum_keccak_F(raw,raw_len,scalar);
+    electroneum_reduce(scalar, scalar);
 }
 
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-void monero_hash_to_ec(unsigned char *ec, unsigned char *ec_pub) {
-    monero_keccak_F(ec_pub, 32, ec);
-    monero_ge_fromfe_frombytes(ec, ec);
-    monero_ecmul_8(ec, ec);
+void electroneum_hash_to_ec(unsigned char *ec, unsigned char *ec_pub) {
+    electroneum_keccak_F(ec_pub, 32, ec);
+    electroneum_ge_fromfe_frombytes(ec, ec);
+    electroneum_ecmul_8(ec, ec);
 }
 
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-void monero_generate_keypair(unsigned char *ec_pub, unsigned char *ec_priv) {
-    monero_rng(ec_priv,32);
-    monero_reduce(ec_priv, ec_priv);
-    monero_ecmul_G(ec_pub, ec_priv);
+void electroneum_generate_keypair(unsigned char *ec_pub, unsigned char *ec_priv) {
+    electroneum_rng(ec_priv,32);
+    electroneum_reduce(ec_priv, ec_priv);
+    electroneum_ecmul_G(ec_pub, ec_priv);
 }
 
 /* ----------------------------------------------------------------------- */
 /* --- ok                                                              --- */
 /* ----------------------------------------------------------------------- */
-void monero_generate_key_derivation(unsigned char *drv_data, unsigned char *P, unsigned char *scalar) {
-    monero_ecmul_8k(drv_data,P,scalar);
+void electroneum_generate_key_derivation(unsigned char *drv_data, unsigned char *P, unsigned char *scalar) {
+    electroneum_ecmul_8k(drv_data,P,scalar);
 }
 
 /* ----------------------------------------------------------------------- */
 /* ---  ok                                                             --- */
 /* ----------------------------------------------------------------------- */
-void monero_derivation_to_scalar(unsigned char *scalar, unsigned char *drv_data, unsigned int out_idx) {
+void electroneum_derivation_to_scalar(unsigned char *scalar, unsigned char *drv_data, unsigned int out_idx) {
     unsigned char varint[32+8];
     unsigned int len_varint;
 
     os_memmove(varint, drv_data, 32);
-    len_varint = monero_encode_varint(varint+32, out_idx);
+    len_varint = electroneum_encode_varint(varint+32, out_idx);
     len_varint += 32;
-    monero_keccak_F(varint,len_varint,varint);
-    monero_reduce(scalar, varint);
+    electroneum_keccak_F(varint,len_varint,varint);
+    electroneum_reduce(scalar, varint);
 }
 
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-void monero_derive_secret_key(unsigned char *x,
+void electroneum_derive_secret_key(unsigned char *x,
                               unsigned char *drv_data, unsigned int out_idx, unsigned char *ec_priv) {
     unsigned char tmp[32];
 
     //derivation to scalar
-    monero_derivation_to_scalar(tmp,drv_data,out_idx);
+    electroneum_derivation_to_scalar(tmp,drv_data,out_idx);
 
     //generate
-    monero_addm(x, tmp, ec_priv);
+    electroneum_addm(x, tmp, ec_priv);
 }
 
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-void monero_derive_public_key(unsigned char *x,
+void electroneum_derive_public_key(unsigned char *x,
                               unsigned char* drv_data, unsigned int out_idx, unsigned char *ec_pub) {
     unsigned char tmp[32];
 
     //derivation to scalar
-    monero_derivation_to_scalar(tmp,drv_data,out_idx);
+    electroneum_derivation_to_scalar(tmp,drv_data,out_idx);
     //generate
-    monero_ecmul_G(tmp,tmp);
-    monero_ecadd(x,tmp,ec_pub);
+    electroneum_ecmul_G(tmp,tmp);
+    electroneum_ecadd(x,tmp,ec_pub);
 }
 
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-void monero_secret_key_to_public_key(unsigned char *ec_pub, unsigned char *ec_priv) {
-    monero_ecmul_G(ec_pub, ec_priv);
+void electroneum_secret_key_to_public_key(unsigned char *ec_pub, unsigned char *ec_priv) {
+    electroneum_ecmul_G(ec_pub, ec_priv);
 }
 
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-void monero_generate_key_image(unsigned char *img, unsigned char *P, unsigned char* x) {
+void electroneum_generate_key_image(unsigned char *img, unsigned char *P, unsigned char* x) {
     unsigned char I[32];
-    monero_hash_to_ec(I,P);
-    monero_ecmul_k(img, I,x);
+    electroneum_hash_to_ec(I,P);
+    electroneum_ecmul_k(img, I,x);
 }
 
 /* ======================================================================= */
@@ -506,35 +506,35 @@ void monero_generate_key_image(unsigned char *img, unsigned char *P, unsigned ch
 /* ----------------------------------------------------------------------- */
 /* --- ok                                                              --- */
 /* ----------------------------------------------------------------------- */
-void monero_derive_subaddress_public_key(unsigned char *x,
+void electroneum_derive_subaddress_public_key(unsigned char *x,
                                          unsigned char *pub, unsigned char* drv_data, unsigned int index) {
   unsigned char scalarG[32];
 
-  monero_derivation_to_scalar(scalarG , drv_data, index);
-  monero_ecmul_G(scalarG, scalarG);
-  monero_ecsub(x, pub, scalarG);
+  electroneum_derivation_to_scalar(scalarG , drv_data, index);
+  electroneum_ecmul_G(scalarG, scalarG);
+  electroneum_ecsub(x, pub, scalarG);
 }
 
 /* ----------------------------------------------------------------------- */
 /* --- ok                                                              --- */
 /* ----------------------------------------------------------------------- */
-void monero_get_subaddress_spend_public_key(unsigned char *x,unsigned char *index) {
+void electroneum_get_subaddress_spend_public_key(unsigned char *x,unsigned char *index) {
     // m = Hs(a || index_major || index_minor)
-    monero_get_subaddress_secret_key(x, G_monero_vstate.a, index);
+    electroneum_get_subaddress_secret_key(x, G_electroneum_vstate.a, index);
     // M = m*G
-    monero_secret_key_to_public_key(x,x);
+    electroneum_secret_key_to_public_key(x,x);
     // D = B + M
-    monero_ecadd(x,x,G_monero_vstate.B);
+    electroneum_ecadd(x,x,G_electroneum_vstate.B);
  }
 
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-void monero_get_subaddress(unsigned char *C, unsigned char *D, unsigned char *index) {
+void electroneum_get_subaddress(unsigned char *C, unsigned char *D, unsigned char *index) {
     //retrieve D
-    monero_get_subaddress_spend_public_key(D, index);
+    electroneum_get_subaddress_spend_public_key(D, index);
     // C = a*D
-    monero_ecmul_k(C,D,G_monero_vstate.a);
+    electroneum_ecmul_k(C,D,G_electroneum_vstate.a);
 }
 
 /* ----------------------------------------------------------------------- */
@@ -542,15 +542,15 @@ void monero_get_subaddress(unsigned char *C, unsigned char *D, unsigned char *in
 /* ----------------------------------------------------------------------- */
 static const  char C_sub_address_prefix[] = {'S','u','b','A','d','d','r', 0};
 
-void monero_get_subaddress_secret_key(unsigned char *sub_s, unsigned char *s, unsigned char *index) {
+void electroneum_get_subaddress_secret_key(unsigned char *sub_s, unsigned char *s, unsigned char *index) {
     unsigned char in[sizeof(C_sub_address_prefix)+32+8];
 
     os_memmove(in,                               C_sub_address_prefix, sizeof(C_sub_address_prefix)),
     os_memmove(in+sizeof(C_sub_address_prefix),    s,                  32);
     os_memmove(in+sizeof(C_sub_address_prefix)+32, index,              8);
     //hash_to_scalar with more that 32bytes:
-    monero_keccak_F(in, sizeof(in), sub_s);
-    monero_reduce(sub_s, sub_s);
+    electroneum_keccak_F(in, sizeof(in), sub_s);
+    electroneum_reduce(sub_s, sub_s);
 }
 
 /* ======================================================================= */
@@ -560,10 +560,10 @@ void monero_get_subaddress_secret_key(unsigned char *sub_s, unsigned char *s, un
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-void monero_ecmul_G(unsigned char *W,  unsigned char *scalar32) {
+void electroneum_ecmul_G(unsigned char *W,  unsigned char *scalar32) {
     unsigned char Pxy[65];
     unsigned char s[32];
-    monero_reverse32(s, scalar32);
+    electroneum_reverse32(s, scalar32);
     os_memmove(Pxy, C_ED25519_G, 65);
     cx_ecfp_scalar_mult(CX_CURVE_Ed25519, Pxy, sizeof(Pxy), s, 32);
     cx_edward_compress_point(CX_CURVE_Ed25519, Pxy, sizeof(Pxy));
@@ -573,11 +573,11 @@ void monero_ecmul_G(unsigned char *W,  unsigned char *scalar32) {
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-void monero_ecmul_H(unsigned char *W,  unsigned char *scalar32) {
+void electroneum_ecmul_H(unsigned char *W,  unsigned char *scalar32) {
     unsigned char Pxy[65];
     unsigned char s[32];
 
-    monero_reverse32(s, scalar32);
+    electroneum_reverse32(s, scalar32);
 
     Pxy[0] = 0x02;
     os_memmove(&Pxy[1], C_ED25519_Hy, 32);
@@ -592,11 +592,11 @@ void monero_ecmul_H(unsigned char *W,  unsigned char *scalar32) {
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-void monero_ecmul_k(unsigned char *W, unsigned char *P, unsigned char *scalar32) {
+void electroneum_ecmul_k(unsigned char *W, unsigned char *P, unsigned char *scalar32) {
     unsigned char Pxy[65];
     unsigned char s[32];
 
-    monero_reverse32(s, scalar32);
+    electroneum_reverse32(s, scalar32);
 
     Pxy[0] = 0x02;
     os_memmove(&Pxy[1], P, 32);
@@ -611,16 +611,16 @@ void monero_ecmul_k(unsigned char *W, unsigned char *P, unsigned char *scalar32)
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-void monero_ecmul_8k(unsigned char *W, unsigned char *P, unsigned char *scalar32) {
+void electroneum_ecmul_8k(unsigned char *W, unsigned char *P, unsigned char *scalar32) {
     unsigned char s[32];
-    monero_multm_8(s, scalar32);
-    monero_ecmul_k(W, P, s);
+    electroneum_multm_8(s, scalar32);
+    electroneum_ecmul_k(W, P, s);
 }
 
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-void monero_ecmul_8(unsigned char *W, unsigned char *P) {
+void electroneum_ecmul_8(unsigned char *W, unsigned char *P) {
     unsigned char Pxy[65];
 
     Pxy[0] = 0x02;
@@ -636,7 +636,7 @@ void monero_ecmul_8(unsigned char *W, unsigned char *P) {
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-void monero_ecadd(unsigned char *W, unsigned char *P, unsigned char *Q) {
+void electroneum_ecadd(unsigned char *W, unsigned char *P, unsigned char *Q) {
     unsigned char Pxy[65];
     unsigned char Qxy[65];
 
@@ -658,7 +658,7 @@ void monero_ecadd(unsigned char *W, unsigned char *P, unsigned char *Q) {
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-void monero_ecsub(unsigned char *W, unsigned char *P, unsigned char *Q) {
+void electroneum_ecsub(unsigned char *W, unsigned char *P, unsigned char *Q) {
     unsigned char Pxy[65];
     unsigned char Qxy[65];
 
@@ -691,11 +691,11 @@ void monero_ecsub(unsigned char *W, unsigned char *P, unsigned char *Q) {
         return hash;
     }
 */
-void monero_ecdhHash(unsigned char *x, unsigned char *k) {
+void electroneum_ecdhHash(unsigned char *x, unsigned char *k) {
   unsigned char data[38];
   os_memmove(data, "amount", 6);
   os_memmove(data + 6, k, 32);
-  monero_keccak_F(data, 38, x);
+  electroneum_keccak_F(data, 38, x);
 }
 
 /* ----------------------------------------------------------------------- */
@@ -712,80 +712,80 @@ void monero_ecdhHash(unsigned char *x, unsigned char *k) {
         return scalar;
     }
 */
-void monero_genCommitmentMask(unsigned char *c,  unsigned char *sk) {
+void electroneum_genCommitmentMask(unsigned char *c,  unsigned char *sk) {
     unsigned char data[15 + 32];
     os_memmove(data, "commitment_mask", 15);
     os_memmove(data + 15, sk, 32);
-    monero_hash_to_scalar(c, data, 15+32);
+    electroneum_hash_to_scalar(c, data, 15+32);
 }
 
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-void monero_addm(unsigned char *r, unsigned char *a, unsigned char *b) {
+void electroneum_addm(unsigned char *r, unsigned char *a, unsigned char *b) {
     unsigned char ra[32];
     unsigned char rb[32];
 
-    monero_reverse32(ra,a);
-    monero_reverse32(rb,b);
+    electroneum_reverse32(ra,a);
+    electroneum_reverse32(rb,b);
     cx_math_addm(r, ra,  rb, (unsigned char *)C_ED25519_ORDER, 32);
-    monero_reverse32(r,r);
+    electroneum_reverse32(r,r);
 }
 
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-void monero_subm(unsigned char *r, unsigned char *a, unsigned char *b) {
+void electroneum_subm(unsigned char *r, unsigned char *a, unsigned char *b) {
     unsigned char ra[32];
     unsigned char rb[32];
 
-    monero_reverse32(ra,a);
-    monero_reverse32(rb,b);
+    electroneum_reverse32(ra,a);
+    electroneum_reverse32(rb,b);
     cx_math_subm(r, ra,  rb, (unsigned char *)C_ED25519_ORDER, 32);
-    monero_reverse32(r,r);
+    electroneum_reverse32(r,r);
 }
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-void monero_multm(unsigned char *r, unsigned char *a, unsigned char *b) {
+void electroneum_multm(unsigned char *r, unsigned char *a, unsigned char *b) {
     unsigned char ra[32];
     unsigned char rb[32];
 
-    monero_reverse32(ra,a);
-    monero_reverse32(rb,b);
+    electroneum_reverse32(ra,a);
+    electroneum_reverse32(rb,b);
     cx_math_multm(r, ra,  rb, (unsigned char *)C_ED25519_ORDER, 32);
-    monero_reverse32(r,r);
+    electroneum_reverse32(r,r);
 }
 
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-void monero_multm_8(unsigned char *r, unsigned char *a) {
+void electroneum_multm_8(unsigned char *r, unsigned char *a) {
     unsigned char ra[32];
     unsigned char rb[32];
 
-    monero_reverse32(ra,a);
+    electroneum_reverse32(ra,a);
     os_memset(rb,0,32);
     rb[31] = 8;
     cx_math_multm(r, ra,  rb, (unsigned char *)C_ED25519_ORDER, 32);
-    monero_reverse32(r,r);
+    electroneum_reverse32(r,r);
 }
 
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-void monero_reduce(unsigned char *r, unsigned char *a) {
+void electroneum_reduce(unsigned char *r, unsigned char *a) {
     unsigned char ra[32];
-    monero_reverse32(ra,a);
+    electroneum_reverse32(ra,a);
     cx_math_modm(ra, 32, (unsigned char *)C_ED25519_ORDER, 32);
-    monero_reverse32(r,ra);
+    electroneum_reverse32(r,ra);
 }
 
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
 
-void monero_rng(unsigned char *r,  int len) {
+void electroneum_rng(unsigned char *r,  int len) {
     cx_rng(r,len);
 }
 
@@ -793,7 +793,7 @@ void monero_rng(unsigned char *r,  int len) {
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
 /* return 0 if ok, 1 if missing decimal */
-int monero_amount2str(uint64_t xmr,  char *str, unsigned int str_len) {
+int electroneum_amount2str(uint64_t xmr,  char *str, unsigned int str_len) {
     //max uint64 is 18446744073709551616, aka 20 char, plus dot
     char stramount[22];
     unsigned int offset,len,ov;
@@ -848,7 +848,7 @@ int monero_amount2str(uint64_t xmr,  char *str, unsigned int str_len) {
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-uint64_t monero_bamount2uint64(unsigned char *binary) {
+uint64_t electroneum_bamount2uint64(unsigned char *binary) {
     uint64_t xmr;
     int i;
     xmr = 0;
@@ -861,14 +861,14 @@ uint64_t monero_bamount2uint64(unsigned char *binary) {
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-int monero_bamount2str(unsigned char *binary,  char *str, unsigned int str_len) {
-    return monero_amount2str(monero_bamount2uint64(binary), str,str_len);
+int electroneum_bamount2str(unsigned char *binary,  char *str, unsigned int str_len) {
+    return electroneum_amount2str(electroneum_bamount2uint64(binary), str,str_len);
 }
 
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-uint64_t monero_vamount2uint64(unsigned char *binary) {
+uint64_t electroneum_vamount2uint64(unsigned char *binary) {
     uint64_t xmr,x;
    int shift = 0;
    xmr = 0;
@@ -889,7 +889,7 @@ uint64_t monero_vamount2uint64(unsigned char *binary) {
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-int monero_vamount2str(unsigned char *binary,  char *str, unsigned int str_len) {
-   return monero_amount2str(monero_vamount2uint64(binary), str,str_len);
+int electroneum_vamount2str(unsigned char *binary,  char *str, unsigned int str_len) {
+   return electroneum_amount2str(electroneum_vamount2uint64(binary), str,str_len);
 }
 

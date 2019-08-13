@@ -15,15 +15,15 @@
 
 #include "os.h"
 #include "cx.h"
-#include "monero_types.h"
-#include "monero_api.h"
-#include "monero_vars.h"
+#include "electroneum_types.h"
+#include "electroneum_api.h"
+#include "electroneum_vars.h"
 
 
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-int monero_apdu_stealth() {
+int electroneum_apdu_stealth() {
     int i ;
     unsigned char pub[32];
     unsigned char sec[32];
@@ -31,27 +31,27 @@ int monero_apdu_stealth() {
     unsigned char payID[8];
     
     //fetch pub
-    monero_io_fetch(pub,32);
+    electroneum_io_fetch(pub,32);
     //fetch sec
-    monero_io_fetch_decrypt_key(sec);
+    electroneum_io_fetch_decrypt_key(sec);
     //fetch paymentID
-    monero_io_fetch(payID,8);
+    electroneum_io_fetch(payID,8);
 
-    monero_io_discard(0);
+    electroneum_io_discard(0);
 
     //Compute Dout
-    monero_generate_key_derivation(drv, pub, sec);
+    electroneum_generate_key_derivation(drv, pub, sec);
     
     //compute mask
     drv[32] = ENCRYPTED_PAYMENT_ID_TAIL;
-    monero_keccak_F(drv,33,sec);
+    electroneum_keccak_F(drv,33,sec);
     
     //stealth!
     for (i=0; i<8; i++) {
         payID[i] = payID[i] ^ sec[i];
     }
     
-    monero_io_insert(payID,8);
+    electroneum_io_insert(payID,8);
 
     return SW_OK;
 }

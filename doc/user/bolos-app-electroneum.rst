@@ -50,11 +50,11 @@ License:
 Introduction
 ============
 
-Monero application for Ledger Blue and Nano S
+electroneum application for Ledger Blue and Nano S
 
 
 
-How to install Monero Application
+How to install electroneum Application
 ==================================
 
 Nano S / Blue
@@ -67,7 +67,7 @@ From Binary
 
 Use the "Ledger Manager" Chrome App. See https://www.ledgerwallet.com/apps/manager for details.
 
-As the "Monero" application is still in beta stage the application is in developer section: click on "Show developers items" on the bottom right corner to see it.
+As the "electroneum" application is still in beta stage the application is in developer section: click on "Show developers items" on the bottom right corner to see it.
 
    - Launch the Ledger Manager. See `Ledger Manager <https://www.ledgerwallet.com/apps/manager>`_  
      and  ` <https://ledger.groovehq.com/knowledge_base/topics/ledger-manager>`_ 
@@ -75,7 +75,7 @@ As the "Monero" application is still in beta stage the application is in develop
    - Connect your Nano S or your Blue, enter your PIN, and stay on the 
      dashboard;
    - Click on *show developer items* on the bottom right corner;
-   - Click on the green bottom arrow icon near the Ledger *Monero* logo;
+   - Click on the green bottom arrow icon near the Ledger *electroneum* logo;
    - Confirm the installation when required on your device by pressing the 
      right button above the checkmark;
    - Quit the Ledger Manager
@@ -135,7 +135,7 @@ SmartCard service should be already installed. Maybe you have to start it.
 
 
 
-Nano S Monero application explained
+Nano S electroneum application explained
 ===================================
 
 
@@ -155,7 +155,7 @@ The full menu layout is :
 |             Main Network
 |       Reset
 | About 
-|      \ *Monero*
+|      \ *electroneum*
 |      \ *(c) Ledger SAS*
 |      \ *Spec M.m*
 |      \ *App M.m.µ*
@@ -169,7 +169,7 @@ Device Info
 
 The *Device Info* provides current user and slot information. The format is:
 
-|      <Monero: public key >
+|      <electroneum: public key >
 
 
 
@@ -185,19 +185,19 @@ Change the network pairing of the application. Some version maybe locked to Test
 Reset
 ~~~~~
 
-Selecting the menu will erase all Monero Application data and will 
+Selecting the menu will erase all electroneum Application data and will
 reset the application in its '*just installed*' state.
  
 
 
-Nano-S Monero Card application usage
+Nano-S electroneum Card application usage
 =====================================
 
 
-Monero
+electroneum
 ------
 
-The Monero application is intended to be used with monero-wallet-cli 0.12.1+ on v7 network (March 2018 fork)
+The electroneum application is intended to be used with electroneum-wallet-cli 0.12.1+ on v7 network (March 2018 fork)
 Previous network are not supported and will be not. Next network version will be added on time.
 
 Today, the following feature are supported:
@@ -249,7 +249,7 @@ Creating/Restoring Wallet
 
 Creating or Restoring a wallet in done in the same manner as key comes from the Device. 
 
-The basic command is ``monero-wallet-cli --generate-from-device </path/to/wallet/directory>``
+The basic command is ``electroneum-wallet-cli --generate-from-device </path/to/wallet/directory>``
 
 When doing this you get warning message telling you are creating a new wallet. 
 
@@ -258,7 +258,7 @@ previous block will not be scanned for incoming transaction.
 
 If you want to restore a wallet with already incoming transaction you have to restore 
 from a specific provided height. Why do not simply restore from genesis?
-Because Monero is a special network in which all transactions are
+Because electroneum is a special network in which all transactions are
 fully encrypted. That means the only way to know if a block contains a transaction for you is to decrypt
 that transaction. Start from genesis will implies decrypting the whole blockchain on the device. 
 Impossible: TOO LONG!
@@ -270,16 +270,16 @@ when creating a wallet, the client pre-computes the first 200 addresses for the 
 
 Finnally a suggested creation wallet command is :
 
-    monero-wallet-cli --generate-from-device </path/to/wallet/file> --subaddress-lookahead 10:50
+    electroneum-wallet-cli --generate-from-device </path/to/wallet/file> --subaddress-lookahead 10:50
 
 and creation wallet command is :
 
-    monero-wallet-cli --generate-from-device </path/to/wallet/file> --restore-height <height> --subaddress-lookahead 10:50
+    electroneum-wallet-cli --generate-from-device </path/to/wallet/file> --restore-height <height> --subaddress-lookahead 10:50
 
 
 **Note 1**: 
 
-You device must be plugged with the Monero application launched BEFORE running the wallet. 
+You device must be plugged with the electroneum application launched BEFORE running the wallet.
 Once the wallet is running DO NOT quit the application nor unplug the device.
 
 **Note 2**: 
@@ -290,11 +290,11 @@ Launching an existing wallet
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-Plug your device and launch the Monero application.
+Plug your device and launch the electroneum application.
 
 Launch your wallet as usual:
 
-    monero-wallet-cli --wallet-file </path/to/wallet/file> 
+    electroneum-wallet-cli --wallet-file </path/to/wallet/file>
 
 On start, the device request you the authorization to export the private view key to the wallet client.
 Accepting this request make the block scan for incoming transaction identification faster. In this mode
@@ -376,5 +376,5 @@ Annexes
 References
 ----------
 
-* [MONERO]        *Monero Project*, https://getmonero.org/
-* [MONEROGIT]     *Monero Source Project*, https://github.com/monero-project/monero
+* [electroneum]        *electroneum Project*, https://getelectroneum.org/
+* [electroneumGIT]     *electroneum Source Project*, https://github.com/electroneum-project/electroneum

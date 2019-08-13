@@ -26,7 +26,7 @@ from Cryptodome.Hash import keccak
 
 
 
-from .dictionaries.languages import monero_langs
+from .dictionaries.languages import electroneum_langs
 
 
 # =========================================================================================
@@ -40,7 +40,7 @@ DEBUG=False
 def usage(c):
     print('''
 Usage:
-    python -m ledger.monero.seedconv online|offline
+    python -m ledger.electroneum.seedconv online|offline
 
     online:  Seed will be avalaible on the NanoS screen. It is possible to clear it directly from the device.
     offline: Seed is computed offline (NanoS is not required) from your 24 BIPS32 words
@@ -50,7 +50,7 @@ Usage:
 def banner():
     print('''
 =============================================================
-Monero Seed Converter v%s.%s. Copyright (c) Ledger SAS 20018.
+electroneum Seed Converter v%s.%s. Copyright (c) Ledger SAS 20018.
 Licensed under the Apache License, Version 2.0
 =============================================================
         '''%(MAJOR,MINOR))
@@ -72,7 +72,7 @@ def retrieve_language(online):
     print('* Select Language')
     i = -1
     dflt = -1
-    for l in monero_langs:
+    for l in electroneum_langs:
         i += 1
         if len(l['words']) != 1626:
             print('Wrong dictionary length : %d. 1626 expected. Dictionary %s (%s) skipped.'
@@ -86,7 +86,7 @@ def retrieve_language(online):
     n = input('Enter the number corresponding to the language of your choice (%d): '%dflt)
     if len(n) == 0:
         n = dflt
-    return monero_langs[int(n)]
+    return electroneum_langs[int(n)]
 
 
 # =========================================================================================
@@ -173,13 +173,13 @@ def master_key_to_child_key(key,path):
     return kpar,cpar
 
 
-def monero_seed_to_monero_keys(seed):
+def electroneum_seed_to_electroneum_keys(seed):
   l = 0x1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3ed
-  printdbg('monero_seed_to_monero_keys: seed %s'%seed.hex())
+  printdbg('electroneum_seed_to_electroneum_keys: seed %s'%seed.hex())
   kh = keccak.new(digest_bits=256)
   kh.update(seed)
   b = kh.digest()  
-  printdbg('monero_seed_to_monero_keys: b %s'%b.hex())
+  printdbg('electroneum_seed_to_electroneum_keys: b %s'%b.hex())
   ble = int.from_bytes(b,'little')%l
   b = ble.to_bytes(32, 'little')
 
@@ -188,7 +188,7 @@ def monero_seed_to_monero_keys(seed):
   a = kh.digest()
   ale = int.from_bytes(a,'little')%l
   a = ale.to_bytes(32, 'little')
-  printdbg('monero_seed_to_monero_keys: a %s'%a.hex())
+  printdbg('electroneum_seed_to_electroneum_keys: a %s'%a.hex())
 
   return a,b
 
@@ -227,31 +227,31 @@ def spendkey_to_words(seed, language):
 def convert_mnemonic(language, ledger_mnemonic, passphrase):
     s = mnemonic_to_seed(ledger_mnemonic, passphrase)
     mkey = seed_to_master_key(s)
-    monero_ki, monero_ci = master_key_to_child_key(mkey, u"m/44'/128'/0'/0/0")
-    monero_seed = monero_ki
-    monero_view_key, monero_spend_key = monero_seed_to_monero_keys(monero_seed)
-    monero_words = spendkey_to_words(monero_spend_key, language)
+    electroneum_ki, electroneum_ci = master_key_to_child_key(mkey, u"m/44'/128'/0'/0/0")
+    electroneum_seed = electroneum_ki
+    electroneum_view_key, electroneum_spend_key = electroneum_seed_to_electroneum_keys(electroneum_seed)
+    electroneum_words = spendkey_to_words(electroneum_spend_key, language)
 
     printdbg('seed: %s'%binascii.hexlify(s))
     printdbg('Km : %s'%binascii.hexlify(mkey[0]))
     printdbg('Cm:  %s'%binascii.hexlify(mkey[0]))
-    printdbg('monero_seed: %s'%binascii.hexlify(monero_seed))
-    printdbg('monero view  keys: %s'%binascii.hexlify(monero_view_key))
-    printdbg('monero spend keys: %s'%binascii.hexlify(monero_spend_key))
-    printdbg('monero words: %d %s'%(len(monero_words), ' '.join(monero_words)))
+    printdbg('electroneum_seed: %s'%binascii.hexlify(electroneum_seed))
+    printdbg('electroneum view  keys: %s'%binascii.hexlify(electroneum_view_key))
+    printdbg('electroneum spend keys: %s'%binascii.hexlify(electroneum_spend_key))
+    printdbg('electroneum words: %d %s'%(len(electroneum_words), ' '.join(electroneum_words)))
 
-    return monero_words, monero_view_key, monero_spend_key,monero_seed
+    return electroneum_words, electroneum_view_key, electroneum_spend_key,electroneum_seed
 
 
 
 
 def get_offline_seed(lang):
     mnemonic, passphrase = retrieve_credentials()
-    electrum_words,  monero_view_key, monero_spend_key, monero_seed = convert_mnemonic(lang, mnemonic, passphrase)
+    electrum_words,  electroneum_view_key, electroneum_spend_key, electroneum_seed = convert_mnemonic(lang, mnemonic, passphrase)
     print(u'''
     * Result:
       ---------------------------------------------------------------------------------------------------
-      | Monero Electrum words :  {0:<70} |
+      | electroneum Electrum words :  {0:<70} |
       |                          {1:<70} |
       |                          {2:<70} |
       |                                                                                                 |
@@ -260,9 +260,9 @@ def get_offline_seed(lang):
       | View key              :  {5:<70} |
       ---------------------------------------------------------------------------------------------------
     ''' .format (' '.join(electrum_words[0:8]),' '.join(electrum_words[8:16]),' '.join(electrum_words[16:]),
-            binascii.hexlify(monero_seed).decode(),
-            binascii.hexlify(monero_spend_key).decode(),
-            binascii.hexlify(monero_view_key).decode()))
+            binascii.hexlify(electroneum_seed).decode(),
+            binascii.hexlify(electroneum_spend_key).decode(),
+            binascii.hexlify(electroneum_view_key).decode()))
 
 
 # =========================================================================================
@@ -320,19 +320,19 @@ def clear_online_seed(lang):
 # =========================================================================================
 def test():
     # Ledger: abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about
-    # Monero: tavern judge beyond bifocals deepest mural onward dummy eagle diode gained vacation rally cause firm idled
+    # electroneum: tavern judge beyond bifocals deepest mural onward dummy eagle diode gained vacation rally cause firm idled
     #         jerseys moat vigilant upload bobsled jobs cunning doing jobs
     # seed  DB9E57474BE8B64118B6ACF6ECEBD13F8F7C326B3BC1B19F4546573D6BAC9DCF
     # spend 3B094CA7218F175E91FA2402B4AE239A2FE8262792A3E718533A1A357A1E4109
     # view  0F3FE25D0C6D4C94DDE0C0BCC214B233E9C72927F813728B0F01F28F9D5E1201
-    monero_view_key, monero_spend_key = monero_seed_to_monero_keys(binascii.unhexlify(u'DB9E57474BE8B64118B6ACF6ECEBD13F8F7C326B3BC1B19F4546573D6BAC9DCF'))
-    print('monero view  keys: %s'%binascii.hexlify(monero_view_key))
-    print('monero spend keys: %s'%binascii.hexlify(monero_spend_key))
+    electroneum_view_key, electroneum_spend_key = electroneum_seed_to_electroneum_keys(binascii.unhexlify(u'DB9E57474BE8B64118B6ACF6ECEBD13F8F7C326B3BC1B19F4546573D6BAC9DCF'))
+    print('electroneum view  keys: %s'%binascii.hexlify(electroneum_view_key))
+    print('electroneum spend keys: %s'%binascii.hexlify(electroneum_spend_key))
     sys.exit(1);
 
 
 def max_wlen():
-    for l in monero_langs:
+    for l in electroneum_langs:
         print(' %s %d'%(l['english_language_name'], len(l['words'])))
         wlen = 0
         for w in l['words']:
