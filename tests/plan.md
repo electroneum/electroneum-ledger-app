@@ -35,17 +35,17 @@ A restricted electroneum daemon runs on ledger server, you can use it with
 
 **Login:**
 
-    >: XMR_LOGIN="--daemon-login <user>:<password>"
+    >: ETN_LOGIN="--daemon-login <user>:<password>"
 
 Request the LOGIN info to cedric@ledger.fr
 
 **Stagenet:**
 
-    >: XMR_DAEMON="--stagenet --daemon-address 149.202.94.158:38081"
+    >: ETN_DAEMON="--stagenet --daemon-address 149.202.94.158:38081"
 
 **Mainnet:**
 
-    >: XMR_DAEMON="149.202.94.158:18081"
+    >: ETN_DAEMON="149.202.94.158:18081"
 
 
 Client setup
@@ -144,8 +144,8 @@ Open existing wallet
 ====================
 
     >: ${electroneum} \
-         ${XMR_DAEMON} \
-         ${XMR_LOGIN} \
+         ${ETN_DAEMON} \
+         ${ETN_LOGIN} \
          --log-level 4 \
          --log-file wallets/std/stdwallet.log  \
          --wallet-file  wallets/std/stdwallet
@@ -153,8 +153,8 @@ Open existing wallet
 or
 
     >: ${electroneum} \
-         ${XMR_DAEMON} \
-         ${XMR_LOGIN} \
+         ${ETN_DAEMON} \
+         ${ETN_LOGIN} \
          --log-level 4 \
          --log-file wallets/device/hwwallet.log  \
          --wallet-file  wallets/device/hwwallet

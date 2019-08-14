@@ -45,9 +45,9 @@
 #define MAINNET_CRYPTONOTE_PUBLIC_INTEGRATED_ADDRESS_BASE58_PREFIX  18019
 #define MAINNET_CRYPTONOTE_PUBLIC_SUBADDRESS_BASE58_PREFIX          42
 
-//#define STAGENET_CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX            24
-//#define STAGENET_CRYPTONOTE_PUBLIC_INTEGRATED_ADDRESS_BASE58_PREFIX 25
-//#define STAGENET_CRYPTONOTE_PUBLIC_SUBADDRESS_BASE58_PREFIX         36
+#define STAGENET_CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX            24
+#define STAGENET_CRYPTONOTE_PUBLIC_INTEGRATED_ADDRESS_BASE58_PREFIX 25
+#define STAGENET_CRYPTONOTE_PUBLIC_SUBADDRESS_BASE58_PREFIX         36
 
 #define TESTNET_CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX             18018
 #define TESTNET_CRYPTONOTE_PUBLIC_INTEGRATED_ADDRESS_BASE58_PREFIX  18019
@@ -56,7 +56,7 @@
 enum network_type {
     MAINNET = 0,
     TESTNET,
-//    STAGENET,
+    STAGENET,
     FAKECHAIN
 };
 
@@ -170,7 +170,7 @@ struct electroneum_v_state_s {
       char            ux_menu[112];
       // address to display: 95-chars + null
       char            ux_address[96];
-      // xmr to display: max pow(2,64) unit, aka 20-chars + '0' + dot + null
+      // ETN to display: max pow(2,64) unit, aka 20-chars + '0' + dot + null
       char            ux_amount[23];
     };
     struct {

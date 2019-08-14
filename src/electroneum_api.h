@@ -83,7 +83,7 @@ int electroneum_vamount2str(unsigned char *binary,  char *str, unsigned int str_
 /** binary little endian unsigned  int amount to str */
 int electroneum_bamount2str(unsigned char *binary,  char *str, unsigned int str_len);
 /** uint64  amount to str */
-int electroneum_amount2str(uint64_t xmr,  char *str, unsigned int str_len);
+int electroneum_amount2str(uint64_t ETN,  char *str, unsigned int str_len);
 
 int electroneum_abort_tx() ;
 int electroneum_unblind(unsigned char *v, unsigned char *k, unsigned char *AKout, unsigned int short_amount);

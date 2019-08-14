@@ -793,7 +793,7 @@ void electroneum_rng(unsigned char *r,  int len) {
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
 /* return 0 if ok, 1 if missing decimal */
-int electroneum_amount2str(uint64_t xmr,  char *str, unsigned int str_len) {
+int electroneum_amount2str(uint64_t ETN,  char *str, unsigned int str_len) {
     //max uint64 is 18446744073709551616, aka 20 char, plus dot
     char stramount[22];
     unsigned int offset,len,ov;
@@ -803,7 +803,7 @@ int electroneum_amount2str(uint64_t xmr,  char *str, unsigned int str_len) {
     os_memset(stramount,'0',sizeof(stramount));
     stramount[21] = 0;
     //special case
-    if (xmr == 0) {
+    if (ETN == 0) {
         str[0] = '0';
         return 1;
     }
@@ -811,17 +811,17 @@ int electroneum_amount2str(uint64_t xmr,  char *str, unsigned int str_len) {
     //uint64 units to str
     // offset: 0 | 1-20     | 21
     // ----------------------
-    // value:  0 | xmrunits | 0
+    // value:  0 | ETNunits | 0
 
     offset = 20;
-    while (xmr) {
-        stramount[offset] = '0' + xmr % 10;
-        xmr = xmr / 10;
+    while (ETN) {
+        stramount[offset] = '0' + ETN % 10;
+        ETN = ETN / 10;
         offset--;
     }
     // offset: 0-7 | 8 | 9-20 |21
     // ----------------------
-    // value:  xmr | . | units| 0
+    // value:  ETN | . | units| 0
     os_memmove(stramount, stramount+1, 8);
     stramount[8] = '.';
     offset = 0;
@@ -849,13 +849,13 @@ int electroneum_amount2str(uint64_t xmr,  char *str, unsigned int str_len) {
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
 uint64_t electroneum_bamount2uint64(unsigned char *binary) {
-    uint64_t xmr;
+    uint64_t ETN;
     int i;
-    xmr = 0;
+    ETN = 0;
     for (i=7; i>=0; i--) {
-        xmr = xmr*256 + binary[i];
+        ETN = ETN*256 + binary[i];
     }
-    return xmr;
+    return ETN;
 }
 
 /* ----------------------------------------------------------------------- */
@@ -869,21 +869,21 @@ int electroneum_bamount2str(unsigned char *binary,  char *str, unsigned int str_
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
 uint64_t electroneum_vamount2uint64(unsigned char *binary) {
-    uint64_t xmr,x;
+    uint64_t ETN,x;
    int shift = 0;
-   xmr = 0;
+   ETN = 0;
    while((*binary)&0x80) {
        if ( (unsigned int)shift > (8*sizeof(unsigned long long int)-7)) {
         return 0;
        }
        x = *(binary)&0x7f;
-       xmr = xmr + (x<<shift);
+       ETN = ETN + (x<<shift);
        binary++;
        shift += 7;
    }
    x = *(binary)&0x7f;
-   xmr = xmr + (x<<shift);
-   return xmr;
+   ETN = ETN + (x<<shift);
+   return ETN;
 }
 
 /* ----------------------------------------------------------------------- */
