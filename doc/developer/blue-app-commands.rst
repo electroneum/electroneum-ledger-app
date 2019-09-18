@@ -273,8 +273,8 @@ The commands are divided in three sets:
   - Low level crypto command
   - High level transaction command
 
-  The low level set is a direct mapping of some crypto electroneum function. For such command
-  the electroneum function will be referenced.
+  The low level set is a direct mapping of some crypto Monero function. For such command
+  the Monero function will be referenced.
 
   The high level set encompasses functions that handle the confidential/sensitive part of
   full transaction
@@ -333,7 +333,7 @@ The general BIP44 path is :
   ``/ purpose' / coin_type' / account' / change / address_index``
 
 
-and is defined as follow for any electroneum main address:
+and is defined as follow for any Monero main address:
 
   `` /44'/128'/account'/0/0``
 
@@ -348,7 +348,7 @@ sub-address index according to kenshi84 fork.
 In case an already existing key needs to be transferred, an optional dedicated
 command may be provided. As there is no secure messaging for now, this
 transfer shall be done from a trusted Host.
-Moreover, as provisioning is not handled by electroneum client, a separate tool must
+Moreover, as provisioning is not handled by Monero client, a separate tool must
 be provided.
 
 
@@ -499,7 +499,7 @@ Commands
 Derive Subaddress Public Key
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**electroneum**
+**Monero**
 
 crypto_ops::derive_subaddress_public_key.
 
@@ -548,7 +548,7 @@ return |P|'
 Get Subaddress Spend Public Key
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**electroneum**
+**Monero**
 
 device_default::get_subaddress_spend_public_key.
 
@@ -596,7 +596,7 @@ return |D|
 Get Subaddress
 ~~~~~~~~~~~~~~
 
-**electroneum**
+**Monero**
 
 device_default::get_subaddress_secret_key.
 
@@ -648,7 +648,7 @@ return |C|, |D|
 Get Subaddress Secret Key
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**electroneum**
+**Monero**
 
     get_subaddress_secret_key
 
@@ -694,7 +694,7 @@ return |ed|
 Verify Keys
 ~~~~~~~~~~~
 
-**electroneum**
+**Monero**
 
 device_default::verify_keys.
 
@@ -748,7 +748,7 @@ Any other value will be rejected.
 Scalarmult Key
 ~~~~~~~~~~~~~~
 
-**electroneum**
+**Monero**
 
 rct::scalarmultKey.
 
@@ -796,7 +796,7 @@ return |xP|
 Scalarmult Base
 ~~~~~~~~~~~~~~~
 
-**electroneum**
+**Monero**
 
 rct::scalarmultBase.
 
@@ -845,7 +845,7 @@ return |xG|
 Secret Add
 ~~~~~~~~~~
 
-**electroneum**
+**Monero**
 
 sc_add
 
@@ -893,7 +893,7 @@ return |ex|.
 Generate Keys
 ~~~~~~~~~~~~~
 
-**electroneum**
+**Monero**
 
 crypto::generate_keys.
 
@@ -939,7 +939,7 @@ return |P|, |ex|.
 Generate Key Derivation
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-**electroneum**
+**Monero**
 
 crypto::generate_key_derivation.
 
@@ -988,7 +988,7 @@ return |eDrv|.
 Derivation To Scalar
 ~~~~~~~~~~~~~~~~~~~~
 
-**electroneum**
+**Monero**
 
 crypto::derivation_to_scalar.
 
@@ -1037,7 +1037,7 @@ return |es|.
 Derive Secret Key
 ~~~~~~~~~~~~~~~~~
 
-**electroneum**
+**Monero**
 
 crypto::derive_secret_key.
 
@@ -1096,7 +1096,7 @@ return |ex|.
 Derive Public Key
 ~~~~~~~~~~~~~~~~~
 
-**electroneum**
+**Monero**
 
 crypto::derive_public_key.
 
@@ -1153,7 +1153,7 @@ return |P|.
 Secret Key To Public Key
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-**electroneum**
+**Monero**
 
 crypto::secret_key_to_public_key.
 
@@ -1198,7 +1198,7 @@ return |P|.
 Generate Key Image
 ~~~~~~~~~~~~~~~~~~
 
-**electroneum**
+**Monero**
 
 crypto::generate_key_image.
 
@@ -1919,7 +1919,7 @@ return |ss|
 Conclusion
 ==========
 
-This draft note explains how to protect electroneum transactions of the official client with a NanoS.
+This draft note explains how to protect Monero transactions of the official client with a NanoS.
 According to the latest SDK, the necessary RAM for global data is evaluated to around 0.8 Kilobytes
 for a transaction with one output and 1,7 Kilobytes for a transaction with ten outputs.
 The proposed NanoS interaction should be enhanced with a strong state machine to avoid multiple
@@ -1928,13 +1928,13 @@ requests for the same data and limit any potential cryptanalysis.
 Annexes
 =======
 
-Reference(Monero equivalents for now)
+References
 ----------
 
-   | [1] `<https://github.com/electroneum-project/monero/tree/v0.10.3.1>`_
-   | [2] `<https://github.com/monero-project/electroneum/pull/2056>`_
+   | [1] `<https://github.com/monero-project/monero/tree/v0.10.3.1>`_
+   | [2] `<https://github.com/monero-project/monero/pull/2056>`_
    | [3] `<https://github.com/kenshi84/monero/tree/subaddress-v2>`_
-   | [4] `<https://www.reddit.com/r/monero/comments/6invis/ledger_hardware_wallet_electroneum_integration>`_
+   | [4] `<https://www.reddit.com/r/Monero/comments/6invis/ledger_hardware_wallet_monero_integration>`_
    | [5] `<https://github.com/moneroexamples>`_
 
 
@@ -1946,7 +1946,7 @@ Helper functions
 
    | *input* : :math:`r , P`
    | *output*:  :math:`\mathfrak{D}`
-   | *electroneum*: generate_key_derivation
+   | *Monero*: generate_key_derivation
    |
    |      :math:`\mathfrak{D} = r.P`
    |      :math:`\mathfrak{D} = 8.\mathfrak{D}`
@@ -1956,7 +1956,7 @@ Helper functions
 
    | *input*: :math:`\mathfrak{D},B`
    | *output*: :math:`P`
-   | *electroneum*: derive_public_key
+   | *Monero*: derive_public_key
    |
    |      :math:`P` = |Hps|:math:`(\mathfrak{D}).G+B`
    |
@@ -1966,7 +1966,7 @@ Helper functions
 
    | *input*: D,b
    | *output*: x
-   | *electroneum*: derive_private_key
+   | *Monero*: derive_private_key
    |
    |      :math:`x` = |Hps|:math:`(\mathfrak{D})+b`
    |
@@ -1975,7 +1975,7 @@ Helper functions
 
    | *input*: :math:`x,P`
    | *output*: :math:`I`
-   | *electroneum*:
+   | *Monero*:
    |
    |      :math:`I` = |xin|.|Hp|(|Pin|)
    |

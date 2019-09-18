@@ -1,5 +1,5 @@
 #!/bin/bash
 
-rm -f bolos-app-electroneum.pdf bolos-app-electroneum.latex
+rm -f bolos-app-monero.pdf bolos-app-monero.latex
 
-pandoc -s --variable graphics --template=bolos-app-electroneum.template -f rst+raw_tex+line_blocks+citations -t latex --toc -N -o bolos-app-electroneum.pdf bolos-app-electroneum.rst
+pandoc -s --variable graphics --template=bolos-app-monero.template -f rst+raw_tex+line_blocks+citations -t latex --toc -N -o bolos-app-monero.pdf bolos-app-monero.rst
