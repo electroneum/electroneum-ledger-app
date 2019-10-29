@@ -21,14 +21,14 @@ $(error Environment variable BOLOS_SDK is not set)
 endif
 include $(BOLOS_SDK)/Makefile.defines
 
-#Monero /44'/128'
+#electroneum /44'/128'
 APP_LOAD_PARAMS=  --path "2147483692/2147483776" --curve secp256k1 $(COMMON_LOAD_PARAMS) --appFlags 0x40
-APPNAME = "Monero"
+APPNAME = "electroneum"
 
 ifeq ($(TARGET_NAME),TARGET_BLUE)
-ICONNAME = images/icon_monero_blue.gif
+ICONNAME = images/icon_electroneum_blue.gif
 else
-ICONNAME = images/icon_monero.gif
+ICONNAME = images/icon_electroneum.gif
 endif
 
 APPVERSION_M=1
@@ -38,10 +38,10 @@ APPVERSION_P=2
 APPVERSION=$(APPVERSION_M).$(APPVERSION_N).$(APPVERSION_P)
 SPECVERSION="alpha"
 
-DEFINES   += $(MONERO_CONFIG)
-DEFINES   += MONERO_VERSION_MAJOR=$(APPVERSION_M) MONERO_VERSION_MINOR=$(APPVERSION_N) MONERO_VERSION_MICRO=$(APPVERSION_P)
-DEFINES   += MONERO_VERSION=$(APPVERSION)
-DEFINES   += MONERO_NAME=$(APPNAME)
+DEFINES   += $(electroneum_CONFIG)
+DEFINES   += electroneum_VERSION_MAJOR=$(APPVERSION_M) electroneum_VERSION_MINOR=$(APPVERSION_N) electroneum_VERSION_MICRO=$(APPVERSION_P)
+DEFINES   += electroneum_VERSION=$(APPVERSION)
+DEFINES   += electroneum_NAME=$(APPNAME)
 DEFINES   += SPEC_VERSION=$(SPECVERSION)
 
 

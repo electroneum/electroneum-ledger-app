@@ -1,7 +1,7 @@
-# ledger-app-monero
+# ledger-app-electroneum
 
 
-Monero wallet application for Ledger Blue and Nano S
+electroneum wallet application for Ledger Blue and Nano S
 
 # Install from sources
 
@@ -16,22 +16,22 @@ Note this is only for testing. For production usage, use the application provide
 
 ## V1.3.1
 
-Add Tx proof support Monero post 0.14.0.2
+Add Tx proof support electroneum post 0.14.0.2
 
 ## V1.3.0
 
-Targeted Client: Monero post 0.14.0.2
+Targeted Client: electroneum post 0.14.0.2
 
 ## V1.2.2
 
-Targeted Client: Monero 0.14.0.2
+Targeted Client: electroneum 0.14.0.2
 
 Partial bug Fixes in change destination address computation: Only one destination
 is allowed in transfer command
 
 ## v1.2.0
 
-Targeted Client: Monero 0.14.0.0+
+Targeted Client: electroneum 0.14.0.0+
 
 - V11 fork integration
 - Fix change address issue.
@@ -54,7 +54,7 @@ Allow transaction parsing when screen is locked
 
 Initial Release
 
-Targeted Client: Monero 0.13.0.0+
+Targeted Client: electroneum 0.13.0.0+
 
 - Security fix: Screen lock management
 - Optimisation: New protocol V2 for future
@@ -69,12 +69,12 @@ Targeted Client: Monero 0.13.0.0+
 
 Initial Release
 
-Targeted Client: Monero 0.13.0.0+
+Targeted Client: electroneum 0.13.0.0+
 
 
 ## v 0.12.4 / Beta 5
 
-Targeted Client: Monero 0.12.1
+Targeted Client: electroneum 0.12.1
 
 - U2F support
 - Fix Windows detection problem
@@ -82,29 +82,29 @@ Targeted Client: Monero 0.12.1
 
 ## v 0.12.3 / Beta 4
 
-Targeted Client: Monero 0.12.1
+Targeted Client: electroneum 0.12.1
 
 - SDK 1.4.2.1 port
 
 ## v 0.12.2 / Beta 3
 
-Targeted Client: Monero 0.12.1
+Targeted Client: electroneum 0.12.1
 
 - Activate security command chain control
 
 
 ## v 0.12.1 / Beta 2
 
-Targeted Client: Monero 0.12.1
+Targeted Client: electroneum 0.12.1
 
 - Add second PIN support
 - Remove key storage  in NVRAM, always recompute secret key at boot
 - Export secret viewkey, with agreement of user, to speed up tx scan
 - Clean-up RAM usage
-- Change some naming according to Monero client convention
+- Change some naming according to electroneum client convention
 
 ## Beta 1
 
-Targeted Client: Monero 0.12.0
+Targeted Client: electroneum 0.12.0
 
 - Initial Beta.
