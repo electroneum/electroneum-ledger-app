@@ -135,9 +135,9 @@ void electroneum_install(unsigned char netId) {
 /* ----------------------------------------------------------------------- */
 /* --- Reset                                                           --- */
 /* ----------------------------------------------------------------------- */
-#define electroneum_SUPPORTED_CLIENT_SIZE 1
-const char * const electroneum_supported_client[electroneum_SUPPORTED_CLIENT_SIZE] = {
-  "0.14.1.0",
+#define ELECTRONEUM_SUPPORTED_CLIENT_SIZE 1
+const char * const electroneum_supported_client[ELECTRONEUM_SUPPORTED_CLIENT_SIZE] = {
+  "3.0.0.0"
 };
 
 int electroneum_apdu_reset() {
@@ -151,14 +151,14 @@ int electroneum_apdu_reset() {
   electroneum_io_fetch((unsigned char*)&client_version[0], client_version_len);
 
   unsigned int i = 0;
-  while(i < electroneum_SUPPORTED_CLIENT_SIZE) {
+  while(i < ELECTRONEUM_SUPPORTED_CLIENT_SIZE) {
     if ((strlen((char*)PIC(electroneum_supported_client[i])) == client_version_len) &&
         (os_memcmp((char*)PIC(electroneum_supported_client[i]), client_version, client_version_len)==0) ) {
       break;
     }
     i++;
   }
-  if (i == electroneum_SUPPORTED_CLIENT_SIZE) {
+  if (i == ELECTRONEUM_SUPPORTED_CLIENT_SIZE) {
     THROW(SW_CLIENT_NOT_SUPPORTED);
   }
 
