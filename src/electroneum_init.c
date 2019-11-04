@@ -69,9 +69,9 @@ void electroneum_init_private_key() {
   //generate account keys
 
   // m / purpose' / coin_type' / account' / change / address_index
-  // m / 44'      / 128'       / 0'       / 0      / 0
+  // m / 44'      / 415'       / 0'       / 0      / 0
   path[0] = 0x8000002C;
-  path[1] = 0x80000080;
+  path[1] = 0x8000019F;
   path[2] = 0x80000000;
   path[3] = 0x00000000;
   path[4] = 0x00000000;
