@@ -819,11 +819,11 @@ int electroneum_amount2str(uint64_t ETN,  char *str, unsigned int str_len) {
         ETN = ETN / 10;
         offset--;
     }
-    // offset: 0-7 | 8 | 9-20 |21
+    // offset: 0-17 | 18 | 19-20 |21
     // ----------------------
-    // value:  ETN | . | units| 0
-    os_memmove(stramount, stramount+1, 8);
-    stramount[8] = '.';
+    // value:  ETN  |  . | units| 0
+    os_memmove(stramount, stramount+1, 18);
+    stramount[18] = '.';
     offset = 0;
     while((stramount[offset]=='0') && (stramount[offset] != '.')) {
         offset++;

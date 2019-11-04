@@ -230,7 +230,7 @@ const bagl_element_t* ui_menu_validation_preprocessor(const ux_menu_entry_t* ent
       os_memmove(G_electroneum_vstate.ux_menu, G_electroneum_vstate.ux_address+11*7, 11);
     }
     if(element->component.userid==0x22) {
-      os_memmove(G_electroneum_vstate.ux_menu, G_electroneum_vstate.ux_address+11*8, 7);
+      os_memmove(G_electroneum_vstate.ux_menu, G_electroneum_vstate.ux_address+11*8, 10);
     }
     element->text = G_electroneum_vstate.ux_menu;
   }
@@ -492,7 +492,7 @@ const bagl_element_t* ui_menu_pubaddr_preprocessor(const ux_menu_entry_t* entry,
       os_memmove(G_electroneum_vstate.ux_menu, G_electroneum_vstate.ux_address+11*7, 11);
     }
     if(element->component.userid==0x22) {
-      os_memmove(G_electroneum_vstate.ux_menu, G_electroneum_vstate.ux_address+11*8, 7);
+      os_memmove(G_electroneum_vstate.ux_menu, G_electroneum_vstate.ux_address+11*8, 10);
     }
     element->text = G_electroneum_vstate.ux_menu;
   }
@@ -521,7 +521,7 @@ const bagl_element_t* ui_menu_main_preprocessor(const ux_menu_entry_t* entry, ba
       os_memset(G_electroneum_vstate.ux_menu, 0, sizeof(G_electroneum_vstate.ux_menu));
       electroneum_base58_public_key(G_electroneum_vstate.ux_menu, G_electroneum_vstate.A,G_electroneum_vstate.B, 0);
       os_memset(G_electroneum_vstate.ux_menu+5,'.',2);
-      os_memmove(G_electroneum_vstate.ux_menu+7, G_electroneum_vstate.ux_menu+95-5,5);
+      os_memmove(G_electroneum_vstate.ux_menu+7, G_electroneum_vstate.ux_menu+98-5,5);
       G_electroneum_vstate.ux_menu[12] = 0;
       element->text = G_electroneum_vstate.ux_menu;
     }

@@ -176,7 +176,7 @@ int electroneum_apdu_put_key() {
   unsigned char pub[32];
   unsigned char sec[32];
 
-  if (G_electroneum_vstate.io_length != (32*2 + 32*2 + 95)) {
+  if (G_electroneum_vstate.io_length != (32*2 + 32*2 + 98)) {
     THROW(SW_WRONG_LENGTH);
     return SW_WRONG_LENGTH;
   }
@@ -227,7 +227,7 @@ int electroneum_apdu_get_key() {
     electroneum_io_insert(G_electroneum_vstate.B, 32);
     //public base address
     electroneum_base58_public_key((char*)G_electroneum_vstate.io_buffer+G_electroneum_vstate.io_offset, G_electroneum_vstate.A, G_electroneum_vstate.B, 0);
-    electroneum_io_inserted(95);
+    electroneum_io_inserted(98);
     break;
 
   //get private
