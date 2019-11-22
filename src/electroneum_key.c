@@ -499,7 +499,7 @@ int electroneum_apdu_derive_secret_key(/*const crypto::key_derivation &derivatio
   electroneum_derive_secret_key(drvsec, derivation, output_index, sec);
 
   //pub key
-  electroneum_io_insert_encrypt(drvsec,32);
+  electroneum_io_insert(drvsec,32);
   return SW_OK;
 }
 
