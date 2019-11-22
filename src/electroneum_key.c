@@ -676,8 +676,11 @@ int electroneum_apu_generate_txout_keys(/*size_t tx_version, crypto::secret_key 
     electroneum_generate_key_derivation(derivation, Aout, (is_subaddress && need_additional_txkeys) ? additional_txkey_sec : tx_key);
   }
 
-  //compute amount key AKout (scalar1), version is always greater than 1
-  electroneum_derivation_to_scalar(amount_key, derivation, output_index);
+  if(tx_version > 1) {
+    //compute amount key AKout (scalar1)
+    electroneum_derivation_to_scalar(amount_key, derivation, output_index);
+  }
+
   if (G_electroneum_vstate.sig_mode == TRANSACTION_CREATE_REAL) {
       if (G_electroneum_vstate.io_protocol_version == 2) {
         electroneum_sha256_outkeys_update(amount_key,32);
@@ -689,7 +692,9 @@ int electroneum_apu_generate_txout_keys(/*size_t tx_version, crypto::secret_key 
 
   //send all
   electroneum_io_discard(0);
-  electroneum_io_insert_encrypt(amount_key,32);
+  if(tx_version > 1) {
+    electroneum_io_insert_encrypt(amount_key,32);
+  }
   electroneum_io_insert(out_eph_public_key, 32);
   if (need_additional_txkeys) {
     electroneum_io_insert(additional_txkey_pub, 32);
