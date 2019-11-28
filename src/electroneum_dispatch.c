@@ -61,6 +61,7 @@ void check_ins_access() {
   case INS_GEN_KEY_IMAGE:
   case INS_SECRET_KEY_TO_PUBLIC_KEY:
   case INS_SECRET_KEY_ADD:
+  case INS_SCALAR_MULSUB:
   case INS_SECRET_KEY_SUB:
   case INS_GENERATE_KEYPAIR:
   case INS_SECRET_SCAL_MUL_KEY:
@@ -180,6 +181,9 @@ int electroneum_dispatch() {
     break;
   case INS_SECRET_KEY_ADD:
     sw = electroneum_apdu_sc_add();
+    break;
+  case INS_SCALAR_MULSUB:
+    sw = electroneum_apdu_scalar_mulsub();
     break;
   case INS_SECRET_KEY_SUB:
     sw = electroneum_apdu_sc_sub();

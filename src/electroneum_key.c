@@ -339,6 +339,32 @@ int electroneum_apdu_sc_add(/*unsigned char *r, unsigned char *s1, unsigned char
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
+int electroneum_apdu_scalar_mulsub(/*unsigned char *c, unsigned char *x, unsigned char *q*/) {
+    unsigned char c[32];
+    unsigned char x[32];
+    unsigned char q[32];
+    unsigned char cx[32];
+    unsigned char r[32];
+
+    //fetch : only q,x are encrypted
+    electroneum_io_fetch(c,32);
+    electroneum_io_fetch_decrypt(x,32);
+    electroneum_io_fetch_decrypt(q,32);
+    electroneum_io_discard(0);
+
+    //Compute (q-cx) mod l === (q mod l - cx mod l) modl
+    /* r = (c*x) %l */
+    electroneum_multm(cx, c, x);
+    /* r = (q-cx) %l */
+    electroneum_subm(r, q, cx);
+
+    electroneum_io_insert(r,32);
+    return SW_OK;
+}
+
+/* ----------------------------------------------------------------------- */
+/* ---                                                                 --- */
+/* ----------------------------------------------------------------------- */
 int electroneum_apdu_sc_sub(/*unsigned char *r, unsigned char *s1, unsigned char *s2*/) {
   unsigned char s1[32];
   unsigned char s2[32];

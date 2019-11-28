@@ -31,6 +31,7 @@ int electroneum_apdu_manage_seedwords() ;
 int electroneum_apdu_verify_key(void);
 int electroneum_apdu_get_chacha8_prekey(void);
 int electroneum_apdu_sc_add(void);
+int electroneum_apdu_scalar_mulsub(void);
 int electroneum_apdu_sc_sub(void);
 int electroneum_apdu_scal_mul_key(void);
 int electroneum_apdu_scal_mul_base(void);

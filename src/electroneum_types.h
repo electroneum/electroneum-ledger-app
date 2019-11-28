@@ -218,6 +218,7 @@ typedef struct  electroneum_v_state_s electroneum_v_state_t;
 #define INS_DERIVE_SECRET_KEY               0x38
 #define INS_GEN_KEY_IMAGE                   0x3A
 #define INS_SECRET_KEY_ADD                  0x3C
+#define INS_SCALAR_MULSUB                   0x3D
 #define INS_SECRET_KEY_SUB                  0x3E
 #define INS_GENERATE_KEYPAIR                0x40
 #define INS_SECRET_SCAL_MUL_KEY             0x42
