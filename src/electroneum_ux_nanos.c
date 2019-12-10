@@ -407,7 +407,7 @@ void ui_menu_reset_action(unsigned int value) {
 
 const ux_menu_entry_t ui_menu_settings[] = {
   {NULL,     ui_menu_network_display,     0, NULL,          "Change Network",  NULL, 0, 0},
-  {NULL,        ui_menu_words_display,    0, NULL,          "Show 25 words",   NULL, 0, 0},
+  //{NULL,        ui_menu_words_display,    0, NULL,          "Show 25 words",   NULL, 0, 0},
   {ui_menu_reset,               NULL,     0, NULL,          "Reset",           NULL, 0, 0},
   {NULL,        ui_menu_main_display,     2, &C_badge_back, "Back",            NULL, 61, 40},
   UX_MENU_END
@@ -489,7 +489,7 @@ const bagl_element_t* ui_menu_pubaddr_preprocessor(const ux_menu_entry_t* entry,
       case DISP_MAIN:
       case DISP_SUB:
         snprintf(G_electroneum_vstate.ux_menu, sizeof(G_electroneum_vstate.ux_menu), 
-                 "Major: %d",
+                 "Account: %d",
                  G_electroneum_vstate.disp_addr_M);
         break;
       case DISP_INTEGRATED:
@@ -504,7 +504,7 @@ const bagl_element_t* ui_menu_pubaddr_preprocessor(const ux_menu_entry_t* entry,
       case DISP_MAIN:
       case DISP_SUB:
         snprintf(G_electroneum_vstate.ux_menu, sizeof(G_electroneum_vstate.ux_menu), 
-                 "minor: %d",
+                 "SubAddr: %d",
                  G_electroneum_vstate.disp_addr_m);
         break;
       case DISP_INTEGRATED:
@@ -564,12 +564,12 @@ const bagl_element_t* ui_menu_pubaddr_preprocessor(const ux_menu_entry_t* entry,
        if (G_electroneum_vstate.disp_addr_mode== DISP_INTEGRATED) {
         os_memmove(G_electroneum_vstate.ux_menu, G_electroneum_vstate.ux_address+11*8, 11);
       } else {
-        os_memmove(G_electroneum_vstate.ux_menu, G_electroneum_vstate.ux_address+11*8, 7);
+        os_memmove(G_electroneum_vstate.ux_menu, G_electroneum_vstate.ux_address+11*8, 10);
       }
     }
     if(element->component.userid==0x22) {
       if (G_electroneum_vstate.disp_addr_mode== DISP_INTEGRATED) {
-        os_memmove(G_electroneum_vstate.ux_menu, G_electroneum_vstate.ux_address+11*9, 7);
+        os_memmove(G_electroneum_vstate.ux_menu, G_electroneum_vstate.ux_address+11*9, 10);
       }
     }
     element->text = G_electroneum_vstate.ux_menu;
