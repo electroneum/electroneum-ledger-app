@@ -605,16 +605,16 @@ void ui_menu_any_pubaddr_display(unsigned int value) {
   case 0:
   case DISP_MAIN:
     os_memmove(ADDR_TYPE, "Main", 4);
-    os_memmove(ADDR_MAJOR, "Major: 0", 8);
-    os_memmove(ADDR_MINOR, "minor: 0", 8);
-    l = 95;
+    os_memmove(ADDR_MAJOR, "Account: 0", 8);
+    os_memmove(ADDR_MINOR, "SubAddr: 0", 8);
+    l = 98;
     break;
 
   case DISP_SUB:
     os_memmove(ADDR_TYPE, "Sub", 3);
-    snprintf(ADDR_MAJOR, 16, "Major: %d", G_electroneum_vstate.disp_addr_M);
-    snprintf(ADDR_MINOR, 16, "minor: %d", G_electroneum_vstate.disp_addr_m);
-    l = 95;
+    snprintf(ADDR_MAJOR, 16, "Account: %d", G_electroneum_vstate.disp_addr_M);
+    snprintf(ADDR_MINOR, 16, "SubAddr: %d", G_electroneum_vstate.disp_addr_m);
+    l = 98;
     break;
 
   case DISP_INTEGRATED:
