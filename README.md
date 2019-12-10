@@ -130,7 +130,7 @@ Note this is only for testing. For production usage, use the application provide
 
 # Revision
 
-## V1.4.1
+## V1.0.0
 
 Targeted Client: Electroneum 3.14.1.2
 
