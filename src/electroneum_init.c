@@ -127,7 +127,7 @@ void electroneum_init_ux() {
   electroneum_base58_public_key(G_electroneum_vstate.ux_wallet_public_address, G_electroneum_vstate.A,G_electroneum_vstate.B, 0, NULL);
   os_memset(G_electroneum_vstate.ux_wallet_public_short_address, '.', sizeof(G_electroneum_vstate.ux_wallet_public_short_address));
   os_memmove(G_electroneum_vstate.ux_wallet_public_short_address, G_electroneum_vstate.ux_wallet_public_address,5);
-  os_memmove(G_electroneum_vstate.ux_wallet_public_short_address+7, G_electroneum_vstate.ux_wallet_public_address+95-5,5);
+  os_memmove(G_electroneum_vstate.ux_wallet_public_short_address+7, G_electroneum_vstate.ux_wallet_public_address+98-5,5);
   G_electroneum_vstate.ux_wallet_public_short_address[12] = 0;
   #endif
 }
@@ -157,7 +157,7 @@ void electroneum_install(unsigned char netId) {
 /* ----------------------------------------------------------------------- */
 #define ELECTRONEUM_SUPPORTED_CLIENT_SIZE 1
 const char * const electroneum_supported_client[ELECTRONEUM_SUPPORTED_CLIENT_SIZE] = {
-  "3.0.0.0"
+  "3.14.1.2"
 };
 
 int electroneum_apdu_reset() {

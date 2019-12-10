@@ -304,7 +304,7 @@ int electroneum_apdu_get_key() {
     electroneum_io_insert(G_electroneum_vstate.B, 32);
     //public base address
     electroneum_base58_public_key((char*)G_electroneum_vstate.io_buffer+G_electroneum_vstate.io_offset, G_electroneum_vstate.A, G_electroneum_vstate.B, 0, NULL);
-    electroneum_io_inserted(95);
+    electroneum_io_inserted(98);
     break;
 
   //get private
