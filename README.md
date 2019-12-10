@@ -132,6 +132,8 @@ Note this is only for testing. For production usage, use the application provide
 
 ## V1.0.0
 
-Targeted Client: Electroneum 3.14.1.2
+Targeted Client: Electroneum v3.14.1.2
+
+Targeted Firmware: SE 1.6.0 / MCU 1.11
 
 * Initial Release. 
