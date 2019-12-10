@@ -71,7 +71,7 @@ void electroneum_aes_derive(cx_aes_key_t *sk, unsigned char* seed32, unsigned ch
 
 void electroneum_aes_generate(cx_aes_key_t *sk) {
     unsigned char  h1[16];
-    electroneum_rng(h1,16);
+    cx_rng(h1,16);
     cx_aes_init_key(h1,16,sk);
 }
 
@@ -302,8 +302,8 @@ static void electroneum_ge_fromfe_frombytes(unsigned char *ge , unsigned char *b
 
     #define Pxy   uv._Pxy
 
-#if electroneum_IO_BUFFER_LENGTH < (9*32)
-#error  electroneum_IO_BUFFER_LENGTH is too small
+#if ELECTRONEUM_IO_BUFFER_LENGTH < (9*32)
+#error  ELECTRONEUM_IO_BUFFER_LENGTH is too small
 #endif
 #endif
 
@@ -374,7 +374,7 @@ static void electroneum_ge_fromfe_frombytes(unsigned char *ge , unsigned char *b
  setsign:
    if (fe_isnegative(rX) != sign) {
      //fe_neg(r->X, r->X);
-    cx_math_subm(rX, (unsigned char *)C_ED25519_FIELD, rX, MOD);
+    cx_math_sub(rX, (unsigned char *)C_ED25519_FIELD, rX, 32);
    }
    cx_math_addm(rZ, z, w, MOD);
    cx_math_subm(rY, z, w, MOD);
@@ -429,8 +429,7 @@ void electroneum_hash_to_ec(unsigned char *ec, unsigned char *ec_pub) {
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
 void electroneum_generate_keypair(unsigned char *ec_pub, unsigned char *ec_priv) {
-    electroneum_rng(ec_priv,32);
-    electroneum_reduce(ec_priv, ec_priv);
+    electroneum_rng_mod_order(ec_priv);
     electroneum_ecmul_G(ec_pub, ec_priv);
 }
 
@@ -670,7 +669,7 @@ void electroneum_ecsub(unsigned char *W, unsigned char *P, unsigned char *Q) {
     os_memmove(&Qxy[1], Q, 32);
     cx_edward_decompress_point(CX_CURVE_Ed25519, Qxy, sizeof(Qxy));
 
-    cx_math_subm(Qxy+1, (unsigned char *)C_ED25519_FIELD,  Qxy+1, (unsigned char *)C_ED25519_FIELD, 32);
+    cx_math_sub(Qxy+1, (unsigned char *)C_ED25519_FIELD,  Qxy+1, 32);
     cx_ecfp_add_point(CX_CURVE_Ed25519, Pxy, Pxy, Qxy, sizeof(Pxy));
 
     cx_edward_compress_point(CX_CURVE_Ed25519, Pxy, sizeof(Pxy));
@@ -784,9 +783,11 @@ void electroneum_reduce(unsigned char *r, unsigned char *a) {
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-
-void electroneum_rng(unsigned char *r,  int len) {
-    cx_rng(r,len);
+void electroneum_rng_mod_order(unsigned char *r) {
+    unsigned char rnd[32+8];
+    cx_rng(rnd,32+8);
+    cx_math_modm(rnd, 32+8, (unsigned char *)C_ED25519_ORDER, 32);
+    electroneum_reverse32(r,rnd+8);
 }
 
 /* ----------------------------------------------------------------------- */

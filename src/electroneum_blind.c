@@ -106,6 +106,7 @@ int electroneum_apdu_gen_commitment_mask() {
     unsigned char AKout[32];
 
     electroneum_io_fetch_decrypt(AKout,32);
+
     electroneum_io_discard(1);
     electroneum_genCommitmentMask(k,AKout);
 

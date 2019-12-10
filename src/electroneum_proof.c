@@ -53,8 +53,7 @@ int electroneum_apdu_get_tx_proof() {
 
     electroneum_io_discard(0);
 
-    electroneum_rng(k,32);
-    electroneum_reduce(k,k);
+    electroneum_rng_mod_order(k);
     os_memmove(G_electroneum_vstate.tmp+32*0, msg, 32);
     os_memmove(G_electroneum_vstate.tmp+32*1, D, 32);
 

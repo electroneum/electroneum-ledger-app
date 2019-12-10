@@ -33,10 +33,11 @@
  * io_length: length of current message part
  */
 
+
+
 /* ----------------------------------------------------------------------- */
 /* MISC                                                                    */
 /* ----------------------------------------------------------------------- */
-
 void electroneum_io_set_offset(unsigned int offset) {
   if (offset == IO_OFFSET_END) {
     G_electroneum_vstate.io_offset = G_electroneum_vstate.io_length;
@@ -74,7 +75,7 @@ void electroneum_io_discard(int clear) {
 }
 
 void electroneum_io_clear() {
-  os_memset(G_electroneum_vstate.io_buffer, 0 , electroneum_IO_BUFFER_LENGTH);
+  os_memset(G_electroneum_vstate.io_buffer, 0 , ELECTRONEUM_IO_BUFFER_LENGTH);
 }
 
 /* ----------------------------------------------------------------------- */
@@ -82,7 +83,7 @@ void electroneum_io_clear() {
 /* ----------------------------------------------------------------------- */
 
 void electroneum_io_hole(unsigned int sz) {
-  if ((G_electroneum_vstate.io_length + sz) > electroneum_IO_BUFFER_LENGTH) {
+  if ((G_electroneum_vstate.io_length + sz) > ELECTRONEUM_IO_BUFFER_LENGTH) {
     THROW(ERROR_IO_FULL);
     return ;
   }
@@ -98,15 +99,20 @@ void electroneum_io_insert(unsigned char const *buff, unsigned int len) {
   G_electroneum_vstate.io_offset += len;
 }
 
-void electroneum_io_insert_encrypt(unsigned char* buffer, int len) {
-  electroneum_io_hole(len);
+void electroneum_io_insert_hmac_for(unsigned char* buffer, int len) {
+  unsigned char hmac[32];
+  cx_hmac_sha256(G_electroneum_vstate.hmac_key, 32, buffer, len, hmac, 32);
+  electroneum_io_insert(hmac,32);
+}
 
+void electroneum_io_insert_encrypt(unsigned char* buffer, int len) {
   //for now, only 32bytes block are allowed
   if (len != 32) {
-    THROW(SW_SECURE_MESSAGING_NOT_SUPPORTED);
+    THROW(SW_WRONG_DATA);
     return ;
   }
 
+  electroneum_io_hole(len);
 
 #if defined(IODUMMYCRYPT)
   for (int i = 0; i<len; i++) {
@@ -120,6 +126,10 @@ void electroneum_io_insert_encrypt(unsigned char* buffer, int len) {
          G_electroneum_vstate.io_buffer+G_electroneum_vstate.io_offset, len);
 #endif
   G_electroneum_vstate.io_offset += len;
+  if (G_electroneum_vstate.tx_in_progress) {
+    electroneum_io_insert_hmac_for(G_electroneum_vstate.io_buffer+G_electroneum_vstate.io_offset-len, len);
+  }
+
 }
 
 void electroneum_io_insert_u32(unsigned  int v32) {
@@ -180,14 +190,14 @@ void electroneum_io_insert_tlv(unsigned int T, unsigned int L, unsigned char con
 /* ----------------------------------------------------------------------- */
 /* FECTH data from received buffer                                         */
 /* ----------------------------------------------------------------------- */
-void electroneum_io_assert_availabe(int sz) {
+void electroneum_io_assert_available(int sz) {
   if ((G_electroneum_vstate.io_length-G_electroneum_vstate.io_offset) < sz) {
     THROW(SW_WRONG_LENGTH + (sz&0xFF));
   }
 }
 
 int electroneum_io_fetch(unsigned char* buffer, int len) {
-  electroneum_io_assert_availabe(len);
+  electroneum_io_assert_available(len);
   if (buffer) {
     os_memmove(buffer, G_electroneum_vstate.io_buffer+G_electroneum_vstate.io_offset, len);
   }
@@ -195,13 +205,34 @@ int electroneum_io_fetch(unsigned char* buffer, int len) {
   return len;
 }
 
+
+
+static void electroneum_io_verify_hmac_for(const unsigned char* buffer, int len, unsigned char *expected_hmac) {
+  unsigned char  hmac[32];
+
+  cx_hmac_sha256(G_electroneum_vstate.hmac_key, 32,
+                 buffer, len,
+                 hmac, 32);
+  if (os_memcmp(hmac, expected_hmac, 32)) {
+      THROW(SW_SECURITY_TRUSTED_INPUT);
+    }
+}
+
 int electroneum_io_fetch_decrypt(unsigned char* buffer, int len) {
-  electroneum_io_assert_availabe(len);
+
 
   //for now, only 32bytes block allowed
   if (len != 32) {
     THROW(SW_SECURE_MESSAGING_NOT_SUPPORTED);
     return 0;
+  }
+
+  if (G_electroneum_vstate.tx_in_progress) {
+    electroneum_io_assert_available(len+32);
+    electroneum_io_verify_hmac_for(G_electroneum_vstate.io_buffer+G_electroneum_vstate.io_offset, len,
+                              G_electroneum_vstate.io_buffer+G_electroneum_vstate.io_offset + len);
+  } else {
+    electroneum_io_assert_available(len);
   }
 
   if (buffer) {
@@ -218,39 +249,47 @@ int electroneum_io_fetch_decrypt(unsigned char* buffer, int len) {
 #endif
   }
   G_electroneum_vstate.io_offset += len;
+  if (G_electroneum_vstate.tx_in_progress) {
+    G_electroneum_vstate.io_offset += 32;
+  }
   return len;
 }
 
 int electroneum_io_fetch_decrypt_key(unsigned char* buffer) {
-  int i;
   unsigned char* k;
-  electroneum_io_assert_availabe(32);
+  electroneum_io_assert_available(32);
 
   k = G_electroneum_vstate.io_buffer+G_electroneum_vstate.io_offset;
   //view?
-  for (i =0; i <32; i++) {
-    if (k[i] != 0x00) break;
-  }
-  if(i==32) {
-    os_memmove(buffer, G_electroneum_vstate.a,32);
+  if (os_memcmp(k, C_FAKE_SEC_VIEW_KEY, 32)==0) {
     G_electroneum_vstate.io_offset += 32;
+    if (G_electroneum_vstate.tx_in_progress) {
+      electroneum_io_assert_available(32);
+      electroneum_io_verify_hmac_for(C_FAKE_SEC_VIEW_KEY, 32, G_electroneum_vstate.io_buffer+G_electroneum_vstate.io_offset);
+      G_electroneum_vstate.io_offset += 32;
+    }
+    os_memmove(buffer, G_electroneum_vstate.a,32);
     return 32;
   }
   //spend?
-  for (i =0; i <32; i++) {
-    if (k [i] != 0xff) break;
-  }
-  if(i==32) {
-    os_memmove(buffer, G_electroneum_vstate.b,32);
+  else if (os_memcmp(k, C_FAKE_SEC_SPEND_KEY, 32)==0) {
     G_electroneum_vstate.io_offset += 32;
+    if (G_electroneum_vstate.tx_in_progress) {
+      electroneum_io_assert_available(32);
+      electroneum_io_verify_hmac_for(C_FAKE_SEC_SPEND_KEY, 32, G_electroneum_vstate.io_buffer+G_electroneum_vstate.io_offset);
+    }
+    os_memmove(buffer, G_electroneum_vstate.b,32);
     return 32;
   }
-  return electroneum_io_fetch_decrypt(buffer, 32);
+  //else
+  else {
+    return electroneum_io_fetch_decrypt(buffer, 32);
+  }
 }
 
 unsigned int electroneum_io_fetch_u32() {
   unsigned int  v32;
-  electroneum_io_assert_availabe(4);
+  electroneum_io_assert_available(4);
   v32 =  ( (G_electroneum_vstate.io_buffer[G_electroneum_vstate.io_offset+0] << 24) |
            (G_electroneum_vstate.io_buffer[G_electroneum_vstate.io_offset+1] << 16) |
            (G_electroneum_vstate.io_buffer[G_electroneum_vstate.io_offset+2] << 8) |
@@ -261,7 +300,7 @@ unsigned int electroneum_io_fetch_u32() {
 
 unsigned int electroneum_io_fetch_u24() {
   unsigned int  v24;
-  electroneum_io_assert_availabe(3);
+  electroneum_io_assert_available(3);
   v24 =  ( (G_electroneum_vstate.io_buffer[G_electroneum_vstate.io_offset+0] << 16) |
            (G_electroneum_vstate.io_buffer[G_electroneum_vstate.io_offset+1] << 8) |
            (G_electroneum_vstate.io_buffer[G_electroneum_vstate.io_offset+2] << 0) );
@@ -271,7 +310,7 @@ unsigned int electroneum_io_fetch_u24() {
 
 unsigned int electroneum_io_fetch_u16() {
   unsigned int  v16;
-  electroneum_io_assert_availabe(2);
+  electroneum_io_assert_available(2);
   v16 =  ( (G_electroneum_vstate.io_buffer[G_electroneum_vstate.io_offset+0] << 8) |
            (G_electroneum_vstate.io_buffer[G_electroneum_vstate.io_offset+1] << 0) );
   G_electroneum_vstate.io_offset += 2;
@@ -280,7 +319,7 @@ unsigned int electroneum_io_fetch_u16() {
 
 unsigned int electroneum_io_fetch_u8() {
   unsigned int  v8;
-  electroneum_io_assert_availabe(1);
+  electroneum_io_assert_available(1);
   v8 = G_electroneum_vstate.io_buffer[G_electroneum_vstate.io_offset] ;
   G_electroneum_vstate.io_offset += 1;
   return v8;
@@ -317,7 +356,7 @@ int electroneum_io_fetch_tl(unsigned int *T, unsigned int *L) {
 }
 
 int electroneum_io_fetch_nv(unsigned char* buffer, int len) {
-  electroneum_io_assert_availabe(len);
+  electroneum_io_assert_available(len);
   electroneum_nvm_write(buffer, G_electroneum_vstate.io_buffer+G_electroneum_vstate.io_offset, len);
   G_electroneum_vstate.io_offset += len;
   return len;
@@ -330,7 +369,7 @@ int electroneum_io_fetch_nv(unsigned char* buffer, int len) {
 /* REAL IO                                                                 */
 /* ----------------------------------------------------------------------- */
 
-#define MAX_OUT electroneum_APDU_LENGTH
+#define MAX_OUT ELECTRONEUM_APDU_LENGTH
 
 int electroneum_io_do(unsigned int io_flags) {
 
@@ -366,10 +405,11 @@ int electroneum_io_do(unsigned int io_flags) {
   G_electroneum_vstate.io_p2  = G_io_apdu_buffer[3];
   G_electroneum_vstate.io_lc  = 0;
   G_electroneum_vstate.io_le  = 0;
-
   G_electroneum_vstate.io_lc  = G_io_apdu_buffer[4];
   os_memmove(G_electroneum_vstate.io_buffer, G_io_apdu_buffer+5, G_electroneum_vstate.io_lc);
   G_electroneum_vstate.io_length =  G_electroneum_vstate.io_lc;
 
   return 0;
 }
+
+

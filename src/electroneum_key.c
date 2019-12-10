@@ -19,6 +19,8 @@
 #include "electroneum_api.h"
 #include "electroneum_vars.h"
 
+
+
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
@@ -81,7 +83,7 @@ static unsigned long electroneum_crc32( unsigned long inCrc32, const void *buf,
 
 void electroneum_clear_words() {
   for (int i = 0; i<25; i++) {
-    electroneum_nvm_write(N_electroneum_pstate->words[i], NULL,WORDS_MAX_LENGTH);
+    electroneum_nvm_write((void*)N_electroneum_pstate->words[i], NULL,WORDS_MAX_LENGTH);
   }
 }
 /**
@@ -110,7 +112,7 @@ static void  electroneum_set_word(unsigned int n, unsigned int idx, unsigned int
   }
   len = word_list[0];
   word_list++;
-  electroneum_nvm_write(N_electroneum_pstate->words[n], word_list, len);
+  electroneum_nvm_write((void*)N_electroneum_pstate->words[n], word_list, len);
 }
 
 #define word_list_length 1626
@@ -136,7 +138,7 @@ int electroneum_apdu_manage_seedwords() {
 
       for (int wi = 0; wi < 3; wi++) {
         if ((wc[wi] >= w_start) && (wc[wi] < w_end)) {
-          electroneum_set_word(i*3+wi, wc[wi], w_start, G_electroneum_vstate.io_buffer+G_electroneum_vstate.io_offset, electroneum_IO_BUFFER_LENGTH-G_electroneum_vstate.io_offset);
+          electroneum_set_word(i*3+wi, wc[wi], w_start, G_electroneum_vstate.io_buffer+G_electroneum_vstate.io_offset, ELECTRONEUM_IO_BUFFER_LENGTH-G_electroneum_vstate.io_offset);
         }
       }
     }
@@ -149,7 +151,7 @@ int electroneum_apdu_manage_seedwords() {
         }
       }
       w_start = electroneum_crc32(0, G_electroneum_vstate.io_buffer, G_electroneum_vstate.io_p2*24)%24;
-      electroneum_nvm_write(N_electroneum_pstate->words[24], N_electroneum_pstate->words[w_start], WORDS_MAX_LENGTH);
+      electroneum_nvm_write((void*)N_electroneum_pstate->words[24], (void*)N_electroneum_pstate->words[w_start], WORDS_MAX_LENGTH);
     }
 
     break;
@@ -165,6 +167,81 @@ int electroneum_apdu_manage_seedwords() {
 }
 #undef seed
 #undef word_list_length
+
+/* ----------------------------------------------------------------------- */
+/* ---                                                                 --- */
+/* ----------------------------------------------------------------------- */
+static void electroneum_payment_id_to_str(const unsigned char *payment_id, char* str) {
+  for (int i = 0; i<8; i++) {
+    if (payment_id[i] <= 0xF) {
+      snprintf(str+i*2,3, "0%x",payment_id[i]);
+    } else {
+      snprintf(str+i*2,3, "%x",payment_id[i]);
+    }
+  }
+}
+
+int  electroneum_apdu_display_address() {
+  unsigned int  major;
+  unsigned int  minor;
+  unsigned char index[8];
+  unsigned char payment_id[8];
+  unsigned char C[32];
+  unsigned char D[32];
+
+  //fetch
+  electroneum_io_fetch(index, 8);
+  electroneum_io_fetch(payment_id, 8);
+  electroneum_io_discard(0);
+
+  major = (index[0]<<0)|(index[1]<<8)|(index[2]<<16)|(index[3]<<24);
+  minor = (index[4]<<0)|(index[5]<<8)|(index[6]<<16)|(index[7]<<24);
+  if ((minor|major) && (G_electroneum_vstate.io_p1 == 1)) {
+    THROW(SW_WRONG_DATA);
+  }
+
+  //retrieve pub keys
+  if (minor|major) {
+    electroneum_get_subaddress(C, D, index);
+  } else {
+    os_memmove(C, G_electroneum_vstate.A, 32);
+    os_memmove(D, G_electroneum_vstate.B, 32);
+  }
+
+  //prepare UI
+  if (minor|major) {
+    G_electroneum_vstate.disp_addr_M = major;
+    G_electroneum_vstate.disp_addr_m = minor;
+    G_electroneum_vstate.disp_addr_mode = DISP_SUB;
+  } else {
+    if (G_electroneum_vstate.io_p1 == 1) {
+      electroneum_payment_id_to_str(payment_id, G_electroneum_vstate.payment_id);
+      G_electroneum_vstate.disp_addr_mode = DISP_INTEGRATED;
+    } else {
+      G_electroneum_vstate.disp_addr_mode = DISP_MAIN;
+    }
+  }
+  electroneum_base58_public_key(G_electroneum_vstate.ux_address,
+                           C, D,
+                           (minor|major)?1:0,
+                           (G_electroneum_vstate.io_p1 == 1)? payment_id : NULL);
+
+
+
+  ui_menu_any_pubaddr_display(0);
+  return 0;
+}
+
+/* ----------------------------------------------------------------------- */
+/* ---                                                                 --- */
+/* ----------------------------------------------------------------------- */
+int is_fake_view_key(unsigned char *s) {
+  return os_memcmp(s,C_FAKE_SEC_VIEW_KEY, 32) == 0;
+}
+
+int is_fake_spend_key(unsigned char *s) {
+    return os_memcmp(s,C_FAKE_SEC_SPEND_KEY, 32) == 0;
+}
 
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
@@ -189,7 +266,7 @@ int electroneum_apdu_put_key() {
     THROW(SW_WRONG_DATA);
     return SW_WRONG_DATA;
   }
-  nvm_write(N_electroneum_pstate->a, sec, 32);
+  nvm_write((void*)N_electroneum_pstate->a, sec, 32);
 
   //spend key
   electroneum_io_fetch(sec, 32);
@@ -199,12 +276,12 @@ int electroneum_apdu_put_key() {
     THROW(SW_WRONG_DATA);
     return SW_WRONG_DATA;
   }
-  nvm_write(N_electroneum_pstate->b, sec, 32);
+  nvm_write((void*)N_electroneum_pstate->b, sec, 32);
 
 
   //change mode
   unsigned char key_mode = KEY_MODE_EXTERNAL;
-  nvm_write(&N_electroneum_pstate->key_mode, &key_mode, 1);
+  nvm_write((void*)&N_electroneum_pstate->key_mode, &key_mode, 1);
 
   electroneum_io_discard(1);
 
@@ -226,15 +303,20 @@ int electroneum_apdu_get_key() {
     //spend key
     electroneum_io_insert(G_electroneum_vstate.B, 32);
     //public base address
-    electroneum_base58_public_key((char*)G_electroneum_vstate.io_buffer+G_electroneum_vstate.io_offset, G_electroneum_vstate.A, G_electroneum_vstate.B, 0);
-    electroneum_io_inserted(98);
+    electroneum_base58_public_key((char*)G_electroneum_vstate.io_buffer+G_electroneum_vstate.io_offset, G_electroneum_vstate.A, G_electroneum_vstate.B, 0, NULL);
+    electroneum_io_inserted(95);
     break;
 
   //get private
   case 2:
     //view key
-    ui_export_viewkey_display();
-    return 0;
+    if (G_electroneum_vstate.export_view_key == EXPORT_VIEW_KEY) {
+      electroneum_io_insert(G_electroneum_vstate.a, 32);
+    } else {
+      ui_export_viewkey_display(0);
+      return 0;
+    }
+    break;
 
   #if DEBUG_HWDEVICE
   //get info
@@ -257,6 +339,12 @@ int electroneum_apdu_get_key() {
 
     break;
     }
+
+      //get info
+  case 4 :
+    electroneum_io_insert(G_electroneum_vstate.a, 32);
+    electroneum_io_insert(G_electroneum_vstate.b, 32);
+    break;
     #endif
 
   default:
@@ -282,10 +370,10 @@ int electroneum_apdu_verify_key() {
     electroneum_secret_key_to_public_key(computed_pub, priv);
     break;
   case 1:
-    os_memmove(pub, G_electroneum_vstate.A, 32);
+    os_memmove(computed_pub, G_electroneum_vstate.A, 32);
     break;
   case 2:
-    os_memmove(pub, G_electroneum_vstate.B, 32);
+    os_memmove(computed_pub, G_electroneum_vstate.B, 32);
     break;
   default:
     THROW(SW_WRONG_P1P2);

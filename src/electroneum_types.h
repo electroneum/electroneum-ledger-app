@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef electroneum_TYPES_H
-#define electroneum_TYPES_H
+#ifndef ELECTRONEUM_TYPES_H
+#define ELECTRONEUM_TYPES_H
 
 #include "os_io_seproxyhal.h"
 
@@ -30,15 +30,15 @@
 /* cannot send more that F0 bytes in CCID, why? do not know for now
  *  So set up length to F0 minus 2 bytes for SW
  */
-#define electroneum_APDU_LENGTH                       0xFE
+#define ELECTRONEUM_APDU_LENGTH                       0xFE
 
 
 /* big private DO */
-#define electroneum_EXT_PRIVATE_DO_LENGTH             512
+#define ELECTRONEUM_EXT_PRIVATE_DO_LENGTH             512
 /* will be fixed..1024 is not enougth */
-#define electroneum_EXT_CARD_HOLDER_CERT_LENTH        2560
+#define ELECTRONEUM_EXT_CARD_HOLDER_CERT_LENTH        2560
 /* random choice */
-#define electroneum_EXT_CHALLENGE_LENTH               254
+#define ELECTRONEUM_EXT_CHALLENGE_LENTH               254
 
 /* --- ... --- */
 #define MAINNET_CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX             18018
@@ -54,10 +54,12 @@
 #define TESTNET_CRYPTONOTE_PUBLIC_SUBADDRESS_BASE58_PREFIX          34402
 
 enum network_type {
-    MAINNET = 0,
-    TESTNET,
-    STAGENET,
-    FAKECHAIN
+  #ifndef ELECTRONEUM_ALPHA
+  MAINNET = 0,
+  #endif
+  TESTNET = 1,
+  STAGENET = 2,
+  FAKECHAIN = 3
 };
 
 struct electroneum_nv_state_s {
@@ -73,11 +75,11 @@ struct electroneum_nv_state_s {
   unsigned char key_mode;
 
 
+  /* spend key */
+  unsigned char b[32];
   /* view key */
   unsigned char a[32];
 
-  /* spend key */
-  unsigned char b[32];
 
   /*words*/
   #define WORDS_MAX_LENGTH 20
@@ -87,13 +89,19 @@ struct electroneum_nv_state_s {
 
 typedef struct electroneum_nv_state_s electroneum_nv_state_t;
 
-#define electroneum_IO_BUFFER_LENGTH (300)
+#define ELECTRONEUM_IO_BUFFER_LENGTH (300)
 enum device_mode {
   NONE,
   TRANSACTION_CREATE_REAL,
   TRANSACTION_CREATE_FAKE,
   TRANSACTION_PARSE
 };
+
+#define EXPORT_VIEW_KEY  0xC001BEEF
+
+#define DISP_MAIN        0x51
+#define DISP_SUB         0x52
+#define DISP_INTEGRATED  0x53
 
 struct electroneum_v_state_s {
   unsigned char   state;
@@ -113,7 +121,7 @@ struct electroneum_v_state_s {
   unsigned short  io_length;
   unsigned short  io_offset;
   unsigned short  io_mark;
-  unsigned char   io_buffer[electroneum_IO_BUFFER_LENGTH];
+  unsigned char   io_buffer[ELECTRONEUM_IO_BUFFER_LENGTH];
 
 
   unsigned int    options;
@@ -124,17 +132,19 @@ struct electroneum_v_state_s {
 
 
   unsigned int   sig_mode;
+  unsigned int   export_view_key;
 
   /* ------------------------------------------ */
   /* ---               Crypo                --- */
   /* ------------------------------------------ */
+  unsigned char b[32];
   unsigned char a[32];
   unsigned char A[32];
-  unsigned char b[32];
   unsigned char B[32];
 
   /* SPK */
   cx_aes_key_t spk;
+  unsigned char hmac_key[32];
 
   /* Tx state machine */
   struct {
@@ -164,18 +174,36 @@ struct electroneum_v_state_s {
   /* ------------------------------------------ */
   /* ---               UI/UX                --- */
   /* ------------------------------------------ */
+
+  #ifdef UI_NANO_X
+  char            ux_wallet_public_address[160];
+  char            ux_wallet_public_short_address[5+2+5+1];
+  #endif
+
   union {
     struct {
       /* menu 0: 95-chars + "<electroneum: >"  + null */
-      char            ux_menu[112];
-      // address to display: 95-chars + null
-      char            ux_address[96];
+      char            ux_menu[132];
+      // address to display: 95/106-chars + null
+      char            ux_address[132];
       // ETN to display: max pow(2,64) unit, aka 20-chars + '0' + dot + null
       char            ux_amount[23];
+      // addr mode
+      unsigned char disp_addr_mode;
+      //M.m address
+      unsigned int disp_addr_M;
+      unsigned int disp_addr_m;
+      //payment id
+      char payment_id[16];
     };
     struct {
       unsigned char tmp[340];
     };
+    #ifdef UI_NANO_X
+    struct {
+      char ux_words[520];
+    };
+    #endif
   };
 };
 typedef struct  electroneum_v_state_s electroneum_v_state_t;
@@ -206,6 +234,7 @@ typedef struct  electroneum_v_state_s electroneum_v_state_t;
 #define INS_RESET                           0x02
 
 #define INS_GET_KEY                         0x20
+#define INS_DISPLAY_ADDRESS                 0x21
 #define INS_PUT_KEY                         0x22
 #define INS_GET_CHACHA8_PREKEY              0x24
 #define INS_VERIFY_KEY                      0x26
@@ -289,6 +318,7 @@ typedef struct  electroneum_v_state_s electroneum_v_state_t;
 #define SW_SECURITY_COMMITMENT_CHAIN_CONTROL 0x6913
 #define SW_SECURITY_OUTKEYS_CHAIN_CONTROL    0x6914
 #define SW_SECURITY_MAXOUTPUT_REACHED        0x6915
+#define SW_SECURITY_TRUSTED_INPUT            0x6916
 
 #define SW_CLIENT_NOT_SUPPORTED              0x6930
 

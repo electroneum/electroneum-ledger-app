@@ -96,7 +96,7 @@ int electroneum_apdu_mlsag_prehash_update() {
     if (G_electroneum_vstate.sig_mode == TRANSACTION_CREATE_REAL) {
         if (is_change == 0) {
             //encode dest adress
-            electroneum_base58_public_key(&G_electroneum_vstate.ux_address[0], Aout, Bout, is_subaddress);
+            electroneum_base58_public_key(&G_electroneum_vstate.ux_address[0], Aout, Bout, is_subaddress, NULL);
         }
         //update destination hash control
         if (G_electroneum_vstate.io_protocol_version == 2) {

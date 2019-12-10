@@ -14,6 +14,21 @@ Note this is only for testing. For production usage, use the application provide
 
 # Revision
 
+## V1.4.1
+
+ Release for client 0.15
+ firmware LNS 1.6.0 et LNX 1.2.4
+ 
+## V1.4.0
+
+Add address display
+Enhence protocol security
+Remmove double ask for view key
+
+## V1.3.2
+
+--
+
 ## V1.3.1
 
 Add Tx proof support electroneum post 0.14.0.2

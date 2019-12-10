@@ -52,6 +52,7 @@ void check_ins_access() {
   case INS_RESET:
   case INS_PUT_KEY:
   case INS_GET_KEY:
+  case INS_DISPLAY_ADDRESS:
   case INS_VERIFY_KEY:
   case INS_GET_CHACHA8_PREKEY:
   case INS_GEN_KEY_DERIVATION:
@@ -74,6 +75,7 @@ void check_ins_access() {
   case INS_UNBLIND:
   case INS_STEALTH:
   case INS_GET_TX_PROOF:
+  case INS_CLOSE_TX:
     return;
 
   case INS_OPEN_TX:
@@ -83,7 +85,6 @@ void check_ins_access() {
     }
     return;
 
-  case INS_CLOSE_TX:
   case INS_GEN_TXOUT_KEYS:
   case INS_BLIND:
   case INS_VALIDATE:
@@ -142,13 +143,15 @@ int electroneum_dispatch() {
     sw = electroneum_apdu_stealth();
     break;
 
-
    /* --- KEYS --- */
   case INS_PUT_KEY:
     sw = electroneum_apdu_put_key();
     break;
   case INS_GET_KEY:
     sw = electroneum_apdu_get_key();
+    break;
+  case INS_DISPLAY_ADDRESS:
+    sw = electroneum_apdu_display_address();
     break;
   case INS_MANAGE_SEEDWORDS:
     sw = electroneum_apdu_manage_seedwords();
@@ -266,7 +269,6 @@ int electroneum_dispatch() {
 
   default:
     THROW(SW_INS_NOT_SUPPORTED);
-    return SW_INS_NOT_SUPPORTED;
     break;
   }
   return sw;

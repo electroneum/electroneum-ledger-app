@@ -26,6 +26,8 @@
 void electroneum_reset_tx() {
     os_memset(G_electroneum_vstate.r, 0, 32);
     os_memset(G_electroneum_vstate.R, 0, 32);
+    cx_rng(G_electroneum_vstate.hmac_key, 32);
+
     electroneum_keccak_init_H();
     electroneum_sha256_commitment_init();
     electroneum_sha256_outkeys_init();
@@ -41,7 +43,6 @@ void electroneum_reset_tx() {
 /*
  * HD wallet not yet supported : account is assumed to be zero
  */
-#define OPTION_KEEP_r 1
 int electroneum_apdu_open_tx() {
 
     unsigned int account;
@@ -51,19 +52,25 @@ int electroneum_apdu_open_tx() {
     electroneum_io_discard(1);
 
     electroneum_reset_tx();
-    electroneum_rng(G_electroneum_vstate.r,32);
-    electroneum_reduce(G_electroneum_vstate.r, G_electroneum_vstate.r);
+    G_electroneum_vstate.tx_in_progress = 1;
+
+    #ifdef DEBUG_HWDEVICE
+    os_memset(G_electroneum_vstate.hmac_key, 0xab, 32);
+    #else
+    cx_rng(G_electroneum_vstate.hmac_key, 32);
+    #endif
+
+    electroneum_rng_mod_order(G_electroneum_vstate.r);
     electroneum_ecmul_G(G_electroneum_vstate.R, G_electroneum_vstate.r);
 
     electroneum_io_insert(G_electroneum_vstate.R,32);
     electroneum_io_insert_encrypt(G_electroneum_vstate.r,32);
-#ifdef DEBUG_HWDEVICE
-    electroneum_io_insert(G_electroneum_vstate.r,32);
-#endif
-    G_electroneum_vstate.tx_in_progress = 1;
+    electroneum_io_insert(C_FAKE_SEC_VIEW_KEY,32);
+    electroneum_io_insert_hmac_for((void*)C_FAKE_SEC_VIEW_KEY,32);
+    electroneum_io_insert(C_FAKE_SEC_SPEND_KEY,32);
+    electroneum_io_insert_hmac_for((void*)C_FAKE_SEC_SPEND_KEY,32);
     return SW_OK;
 }
-#undef OPTION_KEEP_r
 
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */

@@ -19,4 +19,8 @@
 #include "electroneum_api.h"
 #include "electroneum_vars.h"
 
+#ifdef TARGET_NANOX
+const electroneum_nv_state_t N_state_pic;
+#else
 electroneum_nv_state_t N_state_pic;
+#endif

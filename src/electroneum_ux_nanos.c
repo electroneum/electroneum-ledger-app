@@ -14,6 +14,7 @@
  */
 
 
+#ifdef UI_NANO_S
 
 #include "os.h"
 #include "cx.h"
@@ -324,13 +325,12 @@ unsigned int ui_export_viewkey_button(unsigned int button_mask, unsigned int but
   switch(button_mask) {
   case BUTTON_EVT_RELEASED|BUTTON_LEFT: // CANCEL
     electroneum_io_insert(x, 32);
+    G_electroneum_vstate.export_view_key = 0;
     break;
 
   case BUTTON_EVT_RELEASED|BUTTON_RIGHT:  // OK
     electroneum_io_insert(G_electroneum_vstate.a, 32);
-#ifdef DEBUG_HWDEVICE
-    electroneum_io_insert(G_electroneum_vstate.b, 32);
-#endif
+    G_electroneum_vstate.export_view_key = EXPORT_VIEW_KEY;
     break;
 
   default:
@@ -349,7 +349,9 @@ const ux_menu_entry_t ui_menu_network[] = {
   {NULL,   ui_menu_main_display,   0,                                      &C_badge_back, "Abort",         NULL,          61, 40},
   {NULL,   ui_menu_network_action, TESTNET,  NULL, "Test Network ",  NULL,          0, 0},
   {NULL,   ui_menu_network_action, STAGENET, NULL, "Stage Network", NULL,          0, 0},
+  #ifndef ELECTRONEUM_ALPHA
   {NULL,   ui_menu_network_action, MAINNET,  NULL, "Main Network",  NULL,          0, 0},
+  #endif
   UX_MENU_END
 };
 
@@ -365,11 +367,13 @@ const bagl_element_t* ui_menu_network_preprocessor(const ux_menu_entry_t* entry,
     G_electroneum_vstate.ux_menu[13] = '+';
     element->text = G_electroneum_vstate.ux_menu;
   }
+  #ifndef ELECTRONEUM_ALPHA
   if ((entry == &ui_menu_network[4]) && (element->component.userid==0x20) && (N_electroneum_pstate->network_id == MAINNET)) {
     os_memmove(G_electroneum_vstate.ux_menu, "Main Network  ", 14);
     G_electroneum_vstate.ux_menu[13] = '+';
     element->text = G_electroneum_vstate.ux_menu;
   }
+  #endif
   return element;
 }
 
@@ -437,12 +441,17 @@ const ux_menu_entry_t ui_menu_info[] = {
 void ui_menu_pubaddr_action(unsigned int value);
 
 const ux_menu_entry_t ui_menu_pubaddr[] = {
-  {NULL,  NULL,                  3,          NULL,  "ETN",  "?addr.1?",   0, 0},
-  {NULL,  NULL,                  4,          NULL,  "?addr.2?",     "?addr.2?",   0, 0},
-  {NULL,  NULL,                  5,          NULL,  "?addr.3?",     "?addr.3?",   0, 0},
-  {NULL,  NULL,                  6,          NULL,  "?addr.4?",     "?addr.4?",   0, 0},
-  {NULL,  NULL,                  7,          NULL,  "?addr.5?",     "?addr.5?",   0, 0},
-  {NULL,  ui_menu_main_display,  0, &C_badge_back, "Back",                     NULL, 61, 40},
+  {NULL,  NULL,                  3,          NULL,  "t1.1",     "t1.2",   0, 0},
+
+  {NULL,  NULL,                  3,          NULL,  "i1.1",     "i1.2",   0, 0},
+
+  {NULL,  NULL,                  5,          NULL,  "l1.1",     "l1.2",   0, 0},
+  {NULL,  NULL,                  6,          NULL,  "l2.1",     "l2.2",   0, 0},
+  {NULL,  NULL,                  7,          NULL,  "l3.1",     "l3.2",   0, 0},
+  {NULL,  NULL,                  6,          NULL,  "l4.1",     "l4.2",   0, 0},
+  {NULL,  NULL,                  7,          NULL,  "l5.1",     "l5.2",   0, 0},
+  //{NULL,  ui_menu_main_display,  0, &C_badge_back, "Back",                     NULL, 61, 40},
+  {NULL,  ui_menu_pubaddr_action,  0, &C_badge_back, "Ok",                     NULL, 61, 40},
   UX_MENU_END
 };
 
@@ -450,60 +459,150 @@ const bagl_element_t* ui_menu_pubaddr_preprocessor(const ux_menu_entry_t* entry,
 
    /* --- address --- */
   if (entry == &ui_menu_pubaddr[0]) {
+    os_memset(G_electroneum_vstate.ux_menu, 0, sizeof(G_electroneum_vstate.ux_menu)) ;
+    if(element->component.userid==0x21) {
+      switch (G_electroneum_vstate.disp_addr_mode) {
+      case 0:
+      case DISP_MAIN:
+        os_memmove(G_electroneum_vstate.ux_menu, "Main", 4);
+        break;
+      case DISP_SUB:
+        os_memmove(G_electroneum_vstate.ux_menu, "Sub", 3);
+        break;
+      case DISP_INTEGRATED:
+        os_memmove(G_electroneum_vstate.ux_menu, "Integrated", 10);
+        break;
+      }
+      element->text = G_electroneum_vstate.ux_menu;
+    }
     if(element->component.userid==0x22) {
-      os_memset(G_electroneum_vstate.ux_menu, 0, sizeof(G_electroneum_vstate.ux_menu)) ;
-      os_memmove(G_electroneum_vstate.ux_menu, G_electroneum_vstate.ux_address+11*0, 11);
+      os_memmove(G_electroneum_vstate.ux_menu, "Address", 7);
       element->text = G_electroneum_vstate.ux_menu;
     }
   }
+
   if (entry == &ui_menu_pubaddr[1]) {
     os_memset(G_electroneum_vstate.ux_menu, 0, sizeof(G_electroneum_vstate.ux_menu)) ;
-    if(element->component.userid==0x21) {
-      os_memmove(G_electroneum_vstate.ux_menu, G_electroneum_vstate.ux_address+11*1, 11);
+     if(element->component.userid==0x21) {
+      switch (G_electroneum_vstate.disp_addr_mode) {
+      case 0:
+      case DISP_MAIN:
+      case DISP_SUB:
+        snprintf(G_electroneum_vstate.ux_menu, sizeof(G_electroneum_vstate.ux_menu), 
+                 "Major: %d",
+                 G_electroneum_vstate.disp_addr_M);
+        break;
+      case DISP_INTEGRATED:
+        os_memmove(G_electroneum_vstate.ux_menu, G_electroneum_vstate.payment_id, 8);
+        break;
+      }
+      element->text = G_electroneum_vstate.ux_menu;
     }
-    if(element->component.userid==0x22) {
-      os_memmove(G_electroneum_vstate.ux_menu, G_electroneum_vstate.ux_address+11*2, 11);
+     if(element->component.userid==0x22) {
+      switch (G_electroneum_vstate.disp_addr_mode) {
+      case 0:
+      case DISP_MAIN:
+      case DISP_SUB:
+        snprintf(G_electroneum_vstate.ux_menu, sizeof(G_electroneum_vstate.ux_menu), 
+                 "minor: %d",
+                 G_electroneum_vstate.disp_addr_m);
+        break;
+      case DISP_INTEGRATED:
+        os_memmove(G_electroneum_vstate.ux_menu, G_electroneum_vstate.payment_id+8, 8);
+        break;
+      }
+      element->text = G_electroneum_vstate.ux_menu;
     }
     element->text = G_electroneum_vstate.ux_menu;
   }
+
+
   if (entry == &ui_menu_pubaddr[2]) {
     os_memset(G_electroneum_vstate.ux_menu, 0, sizeof(G_electroneum_vstate.ux_menu)) ;
     if(element->component.userid==0x21) {
-      os_memmove(G_electroneum_vstate.ux_menu, G_electroneum_vstate.ux_address+11*3, 11);
+      os_memmove(G_electroneum_vstate.ux_menu, G_electroneum_vstate.ux_address+11*0, 11);
     }
     if(element->component.userid==0x22) {
-      os_memmove(G_electroneum_vstate.ux_menu, G_electroneum_vstate.ux_address+11*4, 11);
+      os_memmove(G_electroneum_vstate.ux_menu, G_electroneum_vstate.ux_address+11*1, 11);
     }
     element->text = G_electroneum_vstate.ux_menu;
   }
   if (entry == &ui_menu_pubaddr[3]) {
     os_memset(G_electroneum_vstate.ux_menu, 0, sizeof(G_electroneum_vstate.ux_menu)) ;
     if(element->component.userid==0x21) {
-      os_memmove(G_electroneum_vstate.ux_menu, G_electroneum_vstate.ux_address+11*5, 11);
+      os_memmove(G_electroneum_vstate.ux_menu, G_electroneum_vstate.ux_address+11*2, 11);
     }
     if(element->component.userid==0x22) {
-      os_memmove(G_electroneum_vstate.ux_menu, G_electroneum_vstate.ux_address+11*6, 11);
+      os_memmove(G_electroneum_vstate.ux_menu, G_electroneum_vstate.ux_address+11*3, 11);
     }
     element->text = G_electroneum_vstate.ux_menu;
   }
   if (entry == &ui_menu_pubaddr[4]) {
     os_memset(G_electroneum_vstate.ux_menu, 0, sizeof(G_electroneum_vstate.ux_menu)) ;
     if(element->component.userid==0x21) {
-      os_memmove(G_electroneum_vstate.ux_menu, G_electroneum_vstate.ux_address+11*7, 11);
+      os_memmove(G_electroneum_vstate.ux_menu, G_electroneum_vstate.ux_address+11*4, 11);
     }
     if(element->component.userid==0x22) {
-      os_memmove(G_electroneum_vstate.ux_menu, G_electroneum_vstate.ux_address+11*8, 10);
+      os_memmove(G_electroneum_vstate.ux_menu, G_electroneum_vstate.ux_address+11*5, 11);
+    }
+    element->text = G_electroneum_vstate.ux_menu;
+  }
+  if (entry == &ui_menu_pubaddr[5]) {
+    os_memset(G_electroneum_vstate.ux_menu, 0, sizeof(G_electroneum_vstate.ux_menu)) ;
+    if(element->component.userid==0x21) {
+      os_memmove(G_electroneum_vstate.ux_menu, G_electroneum_vstate.ux_address+11*6, 11);
+    }
+    if(element->component.userid==0x22) {
+      os_memmove(G_electroneum_vstate.ux_menu, G_electroneum_vstate.ux_address+11*7, 11);
     }
     element->text = G_electroneum_vstate.ux_menu;
   }
 
+  if (entry == &ui_menu_pubaddr[6]) {
+    os_memset(G_electroneum_vstate.ux_menu, 0, sizeof(G_electroneum_vstate.ux_menu)) ;
+    if(element->component.userid==0x21) {
+       if (G_electroneum_vstate.disp_addr_mode== DISP_INTEGRATED) {
+        os_memmove(G_electroneum_vstate.ux_menu, G_electroneum_vstate.ux_address+11*8, 11);
+      } else {
+        os_memmove(G_electroneum_vstate.ux_menu, G_electroneum_vstate.ux_address+11*8, 7);
+      }
+    }
+    if(element->component.userid==0x22) {
+      if (G_electroneum_vstate.disp_addr_mode== DISP_INTEGRATED) {
+        os_memmove(G_electroneum_vstate.ux_menu, G_electroneum_vstate.ux_address+11*9, 7);
+      }
+    }
+    element->text = G_electroneum_vstate.ux_menu;
+  }
+
+
   return element;
 }
 
+void ui_menu_pubaddr_action(unsigned int value) {
+  
+  if (G_electroneum_vstate.disp_addr_mode) {
+     electroneum_io_insert_u16(0x9000);
+     electroneum_io_do(IO_RETURN_AFTER_TX);
+  }  
+  G_electroneum_vstate.disp_addr_mode = 0;
+  G_electroneum_vstate.disp_addr_M = 0;
+  G_electroneum_vstate.disp_addr_m = 0;
+  ui_menu_main_display(0);
+}
+
+void ui_menu_any_pubaddr_display(unsigned int value) {
+  UX_MENU_DISPLAY(value, ui_menu_pubaddr, ui_menu_pubaddr_preprocessor);
+}
+
 void ui_menu_pubaddr_display(unsigned int value) {
-   electroneum_base58_public_key(G_electroneum_vstate.ux_address, G_electroneum_vstate.A,G_electroneum_vstate.B, 0);
+   electroneum_base58_public_key(G_electroneum_vstate.ux_address, G_electroneum_vstate.A, G_electroneum_vstate.B, 0, NULL);
+   G_electroneum_vstate.disp_addr_mode = 0;
+  G_electroneum_vstate.disp_addr_M = 0;
+  G_electroneum_vstate.disp_addr_m = 0;
    UX_MENU_DISPLAY(value, ui_menu_pubaddr, ui_menu_pubaddr_preprocessor);
 }
+
 
 /* --------------------------------- MAIN UX --------------------------------- */
 
@@ -519,7 +618,7 @@ const bagl_element_t* ui_menu_main_preprocessor(const ux_menu_entry_t* entry, ba
   if (entry == &ui_menu_main[0]) {
     if(element->component.userid==0x22) {
       os_memset(G_electroneum_vstate.ux_menu, 0, sizeof(G_electroneum_vstate.ux_menu));
-      electroneum_base58_public_key(G_electroneum_vstate.ux_menu, G_electroneum_vstate.A,G_electroneum_vstate.B, 0);
+      electroneum_base58_public_key(G_electroneum_vstate.ux_menu, G_electroneum_vstate.A,G_electroneum_vstate.B, 0, NULL);
       os_memset(G_electroneum_vstate.ux_menu+5,'.',2);
       os_memmove(G_electroneum_vstate.ux_menu+7, G_electroneum_vstate.ux_menu+98-5,5);
       G_electroneum_vstate.ux_menu[12] = 0;
@@ -541,3 +640,5 @@ void ui_init(void) {
 void io_seproxyhal_display(const bagl_element_t *element) {
   io_seproxyhal_display_default((bagl_element_t *)element);
 }
+
+#endif
