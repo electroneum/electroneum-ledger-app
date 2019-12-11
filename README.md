@@ -15,6 +15,8 @@
   * [Building and Loading Apps](#Building-and-Loading-Apps)
   * [Install from Source](#Install-from-Source)
 * [Revision](#Revision)
+* [License](#License)
+* [Copyright](#Copyright)
 
 ## Introduction
 
@@ -87,6 +89,10 @@ Cross compilation headers are required and provided within the gcc-multilib and 
 
 ```sudo apt install gcc-multilib g++-multilib```
 
+If your OS doesn't come bundled with the pillow package, you may receive errors whilst building. In this case, you should be able to remedy the situation with
+
+```pip3 install pillow```
+
 ## Setting up the SDK
 
 Now that you have your toolchain set up, you need to download / clone the SDK for the appropriate Ledger device you’re working with. You can do this anywhere, it doesn’t have to be in your ```BOLOS_ENV``` directory (if you even have one). Make sure you checkout the tag matching your firmware version.
@@ -137,3 +143,13 @@ Targeted Client: Electroneum v3.14.1.2
 Targeted Firmware: SE 1.6.0 / MCU 1.11
 
 * Initial Release. 
+
+# License
+
+See [LICENSE](LICENSE).
+
+# Copyright
+
+Copyright (c) 2017-2020, The Electroneum Project
+
+Copyright (c) 2017-2019, CslashM (Ledger)
