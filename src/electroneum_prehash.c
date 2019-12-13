@@ -200,3 +200,48 @@ int electroneum_apdu_mlsag_prehash_finalize() {
     return SW_OK;
 }
 
+int electroneum_apdu_prompt_tx() {
+    
+    if (G_electroneum_vstate.sig_mode == TRANSACTION_CREATE_REAL) {
+        unsigned char *Aout;
+        unsigned char *Bout;
+        unsigned int total;
+        bool is_subaddress;
+        bool is_change;
+
+        Aout = G_electroneum_vstate.io_buffer+G_electroneum_vstate.io_offset; electroneum_io_fetch(NULL,32);
+        Bout = G_electroneum_vstate.io_buffer+G_electroneum_vstate.io_offset; electroneum_io_fetch(NULL,32);
+        total = electroneum_io_fetch_u32();
+        is_change = electroneum_io_fetch_u8();
+        is_subaddress = electroneum_io_fetch_u8();
+        electroneum_base58_public_key(&G_electroneum_vstate.ux_address[0], Aout, Bout, is_subaddress, NULL);
+        electroneum_amount2str(total, G_electroneum_vstate.ux_amount, 15);
+
+        electroneum_io_discard(1);
+
+        if (!is_change) {
+            ui_menu_validation_display(0);
+        } else  {
+            ui_menu_change_validation_display(0);
+        }
+        return 0;
+
+    }
+    electroneum_io_discard(1);
+    return SW_OK;
+}
+
+int electroneum_apdu_prompt_fee() {
+    if (G_electroneum_vstate.sig_mode == TRANSACTION_CREATE_REAL) {
+        unsigned int fee;
+        fee = electroneum_io_fetch_u8();
+        electroneum_amount2str(fee, G_electroneum_vstate.ux_amount, 15);
+
+        electroneum_io_discard(1);
+        ui_menu_fee_validation_display(0);
+        return 0;
+    }
+    electroneum_io_discard(1);
+    return SW_OK;
+}
+
