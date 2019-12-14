@@ -203,8 +203,8 @@ int electroneum_apdu_mlsag_prehash_finalize() {
 int electroneum_apdu_prompt_tx() {
     
     if (G_electroneum_vstate.sig_mode == TRANSACTION_CREATE_REAL) {
-        unsigned char *Aout;
-        unsigned char *Bout;
+        unsigned char *Aout = NULL;
+        unsigned char *Bout = NULL;
         unsigned int total;
         bool is_subaddress;
         bool is_change;
@@ -234,7 +234,8 @@ int electroneum_apdu_prompt_tx() {
 int electroneum_apdu_prompt_fee() {
     if (G_electroneum_vstate.sig_mode == TRANSACTION_CREATE_REAL) {
         unsigned int fee;
-        fee = electroneum_io_fetch_u8();
+        fee = electroneum_io_fetch_u32();
+
         electroneum_amount2str(fee, G_electroneum_vstate.ux_amount, 15);
 
         electroneum_io_discard(1);

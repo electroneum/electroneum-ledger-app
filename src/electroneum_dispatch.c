@@ -90,7 +90,8 @@ void check_ins_access() {
   case INS_VALIDATE:
   case INS_MLSAG:
   case INS_GEN_COMMITMENT_MASK:
-  case INS_VALIDATE_AND_PROMPT:
+  case INS_PROMPT_FEE:
+  case INS_PROMPT_TX:
     if ((os_global_pin_is_validated() != PIN_VERIFIED) ||
         (G_electroneum_vstate.tx_in_progress != 1)) {
       break;
@@ -241,14 +242,11 @@ int electroneum_dispatch() {
     break;
 
     /* --- VALIDATE/PREHASH --- */
-  case INS_VALIDATE_AND_PROMPT:
-    if (G_electroneum_vstate.io_p1 == 1) {
-      sw = electroneum_apdu_prompt_fee();
-    } else if (G_electroneum_vstate.io_p1 == 2) {
-      sw = electroneum_apdu_prompt_tx();
-    } else {
-      THROW(SW_WRONG_P1P2);
-    }
+  case INS_PROMPT_FEE:
+    sw = electroneum_apdu_prompt_fee();
+    break;
+  case INS_PROMPT_TX:
+    sw = electroneum_apdu_prompt_tx();
     break;
     
   case INS_VALIDATE:

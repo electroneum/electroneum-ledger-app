@@ -269,7 +269,8 @@ typedef struct  electroneum_v_state_s electroneum_v_state_t;
 #define INS_VALIDATE                        0x7C
 #define INS_MLSAG                           0x7E
 #define INS_CLOSE_TX                        0x80
-#define INS_VALIDATE_AND_PROMPT             0x82
+#define INS_PROMPT_FEE                      0x82
+#define INS_PROMPT_TX                       0x84
 
 #define INS_GET_TX_PROOF                    0xA0
 #define INS_GEN_SIGNATURE                   0xA2
