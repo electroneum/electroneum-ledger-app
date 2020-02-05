@@ -85,13 +85,20 @@ If you’re just looking for a one-size-fits-all solution to satisfy your toolch
 
 **Note:** Not all of the Makefiles for our applications available on GitHub may recognize ```BOLOS_ENV``` in the way described above. If the Makefile is having trouble finding the right compilers, try setting ```GCCPATH``` and ```CLANGPATH``` explicitly.
 
-Cross compilation headers are required and provided within the gcc-multilib and g++-multilib packages. To install them on a debian system:
+| Package      |Purpose                                               | How to install                                 |
+|-------------:|-------------------------------------------------------|------------------------------------------------|
+|pip            |python package manager                                |sudo apt-get install python-pip (or use pip3 for python3)|
+| Pillow       | Imaging Library                                       | pip install pillow                            |
+| gcc/g++-Multilib | Cross compilation headers                             | sudo apt-get install gcc-multilib g++-multilib |
+| libudev      | Introspect and enumerate devices on the local system. | sudo apt-get install libudev-dev               |
+| libusb       | Applications for controlling USB data transfer        | sudo apt-get install libusb-1.0-0-dev          |
+| ledgerblue  | Other Ledger library                                   | pip install ledgerblue                        |
 
-```sudo apt install gcc-multilib g++-multilib```
+You will also need to set udev rules so that libudev can function properly:
 
-If your OS doesn't come bundled with the pillow package, you may receive errors whilst building. In this case, you should be able to remedy the situation with
-
-```pip3 install pillow```
+```bash
+wget -q -O - https://raw.githubusercontent.com/LedgerHQ/udev-rules/master/add_udev_rules.sh | sudo bash
+```
 
 ## Setting up the SDK
 
