@@ -204,6 +204,17 @@ int  electroneum_hash(unsigned int algo, cx_hash_t * hasher, unsigned char* buf,
  */
 unsigned int electroneum_encode_varint(unsigned char varint[8], unsigned int out_idx);
 
+/**
+ * Decoder for serialising the tx prefix (portable binary archive type serialisation) -see serialisation.txt in
+ * the main repo for more information
+ */
+size_t electroneum_encode_varint_portable_binary_archive(uint8_t buf[static 9], uint64_t num);
+/**
+ * Decoder for serialising the tx prefix (portable binary archive type deserialisation) -see serialisation.txt in
+ * the main repo for more information
+ */
+size_t electroneum_decode_varint_portable_binary_archive(const uint8_t buf[], size_t size_max, uint64_t *num);
+
 /** */
 void electroneum_reverse32(unsigned char *rscal, unsigned char *scal);
 

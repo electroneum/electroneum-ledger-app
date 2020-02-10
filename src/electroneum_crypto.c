@@ -91,6 +91,43 @@ unsigned int electroneum_encode_varint(unsigned char varint[8], unsigned int out
     return len;
 }
 
+size_t electroneum_encode_varint_portable_binary_archive(uint8_t buf[static 9], uint64_t num) {
+
+    if (num > UINT64_MAX / 2)
+        return 0;
+
+    size_t i = 0;
+
+    while (num >= 0x80) {
+        buf[i++] = (uint8_t)(num) | 0x80;
+        num >>= 7;
+    }
+
+    buf[i++] = (uint8_t)(num);
+
+    return i;
+}
+
+size_t electroneum_decode_varint_portable_binary_archive(const uint8_t buf[], size_t size_max, uint64_t *num) {
+    if (size_max == 0)
+        return 0;
+
+    if (size_max > 9)
+        size_max = 9;
+
+    *num = buf[0] & 0x7F;
+    size_t i = 0;
+
+    while (buf[i++] & 0x80) {
+        if (i >= size_max || buf[i] == 0x00)
+            return 0;
+
+        *num |= (uint64_t)(buf[i] & 0x7F) << (i * 7);
+    }
+
+    return i;
+}
+
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
