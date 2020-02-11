@@ -65,6 +65,11 @@ int electroneum_apdu_mlsag_prehash_finalize(void);
 int electroneum_apu_generate_txout_keys(void);
 int electroneum_apdu_prompt_fee(void);
 int electroneum_apdu_prompt_tx(void);
+int electroneum_apdu_tx_prefix_start(void);
+int electroneum_apdu_tx_prefix_inputs(void);
+int electroneum_apdu_tx_prefix_outputs(void);
+int electroneum_apdu_tx_prefix_outputs_size(void);
+int electroneum_apdu_tx_prefix_extra(void);
 
 int electroneum_apdu_mlsag_prepare(void);
 int electroneum_apdu_mlsag_hash(void);

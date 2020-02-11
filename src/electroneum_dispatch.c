@@ -92,6 +92,11 @@ void check_ins_access() {
   case INS_GEN_COMMITMENT_MASK:
   case INS_PROMPT_FEE:
   case INS_PROMPT_TX:
+  case INS_TX_PREFIX_START:
+  case INS_TX_PREFIX_INPUTS:
+  case INS_TX_PREFIX_OUTPUTS:
+  case INS_TX_PREFIX_OUTPUTS_SIZE:
+  case INS_TX_PREFIX_EXTRA:
     if ((os_global_pin_is_validated() != PIN_VERIFIED) ||
         (G_electroneum_vstate.tx_in_progress != 1)) {
       break;
@@ -260,6 +265,22 @@ int electroneum_dispatch() {
       THROW(SW_WRONG_P1P2);
     }
     break;
+
+  case INS_TX_PREFIX_START:
+    sw = electroneum_apdu_tx_prefix_start();
+    break;
+  case INS_TX_PREFIX_INPUTS:
+    sw = electroneum_apdu_tx_prefix_inputs();
+    break;
+  case INS_TX_PREFIX_OUTPUTS:
+    sw = electroneum_apdu_tx_prefix_outputs();
+    break;
+  case INS_TX_PREFIX_OUTPUTS_SIZE:
+    sw = electroneum_apdu_tx_prefix_outputs_size();
+    break;
+  case INS_TX_PREFIX_EXTRA:
+  sw = electroneum_apdu_tx_prefix_extra();
+  break;
 
   /* --- MLSAG --- */
   case INS_MLSAG:

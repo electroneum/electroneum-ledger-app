@@ -870,7 +870,7 @@ int electroneum_bamount2str(unsigned char *binary,  char *str, unsigned int str_
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
 uint64_t electroneum_vamount2uint64(unsigned char *binary) {
-    uint64_t ETN,x;
+   uint64_t ETN,x;
    int shift = 0;
    ETN = 0;
    while((*binary)&0x80) {
@@ -885,6 +885,22 @@ uint64_t electroneum_vamount2uint64(unsigned char *binary) {
    x = *(binary)&0x7f;
    ETN = ETN + (x<<shift);
    return ETN;
+}
+
+/* ----------------------------------------------------------------------- */
+/* ---                                                                 --- */
+/* ----------------------------------------------------------------------- */
+uint8_t* electroneum_uint642vamount(unsigned int num) {
+    uint8_t buf[9] = {0,0,0,0,0,0,0,0,0};
+    size_t i = 0;
+
+    while (num >= 0x80) {
+        buf[i++] = (uint8_t)(num) | 0x80;
+        num >>= 7;
+    }
+
+    buf[i++] = (uint8_t)(num);
+    return buf;
 }
 
 /* ----------------------------------------------------------------------- */

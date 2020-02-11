@@ -246,3 +246,126 @@ int electroneum_apdu_prompt_fee() {
     return SW_OK;
 }
 
+void add_to_tx_prefix(unsigned int num) {
+    unsigned char varint[8] = {0};
+    unsigned int size = electroneum_encode_varint(varint, num);
+
+    os_memmove(G_electroneum_vstate.tx_prefix+G_electroneum_vstate.tx_prefix_offset, varint, size);
+    G_electroneum_vstate.tx_prefix_offset += size;
+}
+
+int electroneum_apdu_tx_prefix_start() {
+    if (G_electroneum_vstate.sig_mode == TRANSACTION_CREATE_REAL) {
+        unsigned int version = electroneum_io_fetch_u32();
+        unsigned int unlock_time = electroneum_io_fetch_u32();
+        unsigned int vins_size = electroneum_io_fetch_u32();
+
+ 
+        //add_to_tx_prefix(version);
+        //add_to_tx_prefix(unlock_time);
+        //add_to_tx_prefix(vins_size);
+
+        uint8_t* vversion = electroneum_uint642vamount(vversion);
+        uint8_t* vunlock_time = electroneum_uint642vamount(vunlock_time);
+        uint8_t* vsize = electroneum_uint642vamount(vsize);
+
+        electroneum_keccak_update_H(vversion, sizeof(vversion));
+        electroneum_keccak_update_H(vunlock_time, sizeof(vunlock_time));
+        electroneum_keccak_update_H(vsize, sizeof(vsize));
+        
+        return SW_OK;
+    }
+
+    electroneum_io_discard(1);
+
+    
+
+    return SW_OK;
+}
+
+int electroneum_apdu_tx_prefix_inputs() {
+    if (G_electroneum_vstate.sig_mode == TRANSACTION_CREATE_REAL) {
+        unsigned int amount = electroneum_io_fetch_u32();
+        unsigned int key_offset = electroneum_io_fetch_u32();
+        unsigned char k_image[32];
+        
+        electroneum_io_fetch(k_image,32);
+
+        uint8_t* vamount = electroneum_uint642vamount(amount);
+        uint8_t* vkey_offset = electroneum_uint642vamount(key_offset);
+
+
+        electroneum_keccak_update_H(electroneum_uint642vamount(2), 1); //vin tag
+        electroneum_keccak_update_H(vamount, sizeof(vamount));
+        electroneum_keccak_update_H(electroneum_uint642vamount(1), 1); //key_offset size=1
+        electroneum_keccak_update_H(vkey_offset, sizeof(vkey_offset));
+        electroneum_keccak_update_H(k_image, 32);
+
+        electroneum_io_insert(vamount, sizeof(vamount));
+        electroneum_io_insert(vkey_offset, sizeof(vkey_offset));
+        electroneum_io_insert(k_image, sizeof(k_image));
+
+        return SW_OK;
+    }
+
+    electroneum_io_discard(1);
+    return SW_OK;
+}
+
+int electroneum_apdu_tx_prefix_outputs() {
+    if (G_electroneum_vstate.sig_mode == TRANSACTION_CREATE_REAL) {
+        unsigned int amount = electroneum_io_fetch_u32();
+        unsigned char key[32];
+        
+        electroneum_io_fetch(key,32);
+
+        uint8_t* vamount = electroneum_uint642vamount(amount);
+
+        
+        electroneum_keccak_update_H(vamount, sizeof(vamount));
+        electroneum_keccak_update_H(electroneum_uint642vamount(2), 1); //vout tag
+        electroneum_keccak_update_H(key, 32);
+    }
+    electroneum_io_discard(1);
+    return SW_OK;
+}
+
+int electroneum_apdu_tx_prefix_outputs_size() {
+    if (G_electroneum_vstate.sig_mode == TRANSACTION_CREATE_REAL) {
+        unsigned int vins_size = electroneum_io_fetch_u32();
+
+        uint8_t* vsize = electroneum_uint642vamount(vins_size);
+
+        electroneum_keccak_update_H(vsize, 1);
+    }
+
+    electroneum_io_discard(1);
+    return SW_OK;
+}
+
+int electroneum_apdu_tx_prefix_extra() {
+    if (G_electroneum_vstate.sig_mode == TRANSACTION_CREATE_REAL) {
+        unsigned int extra_size = electroneum_io_fetch_u32();
+        unsigned char* extra = G_electroneum_vstate.io_buffer+G_electroneum_vstate.io_offset;
+
+        uint8_t* vsize = electroneum_uint642vamount(extra_size);
+
+        electroneum_keccak_update_H(vsize, 1);
+        electroneum_keccak_update_H(extra, extra_size);
+
+        unsigned char  h1[32];
+
+        electroneum_keccak_final_H(h1);
+        electroneum_keccak_H(h1,32,h1);
+
+        //electroneum_io_discard(1);
+        //G_electroneum_vstateelectroneum_io_insert(G_electroneum_vstate.keccakH, sizeof(G_electroneum_vstate.keccakH));
+        return SW_OK;
+    }
+    
+    electroneum_io_discard(1);
+
+    
+    return SW_OK;
+}
+
