@@ -97,6 +97,10 @@ void check_ins_access() {
   case INS_TX_PREFIX_OUTPUTS:
   case INS_TX_PREFIX_OUTPUTS_SIZE:
   case INS_TX_PREFIX_EXTRA:
+  case INS_TX_PROMPT_FEE:
+  case INS_TX_PROMPT_AMOUNT:
+  case INS_HASH_TO_SCALAR:
+  case INS_HASH_TO_SCALAR_BATCH:
     if ((os_global_pin_is_validated() != PIN_VERIFIED) ||
         (G_electroneum_vstate.tx_in_progress != 1)) {
       break;
@@ -207,6 +211,12 @@ int electroneum_dispatch() {
   case INS_SECRET_SCAL_MUL_BASE:
     sw = electroneum_apdu_scal_mul_base();
     break;
+  case INS_HASH_TO_SCALAR:
+    sw = electroneum_apdu_hash_to_scalar();
+    break;
+  case INS_HASH_TO_SCALAR_BATCH:
+    sw = electroneum_apdu_hash_to_scalar_batch();
+    break;
 
   /* --- ADRESSES --- */
   case INS_DERIVE_SUBADDRESS_PUBLIC_KEY:
@@ -247,13 +257,6 @@ int electroneum_dispatch() {
     break;
 
     /* --- VALIDATE/PREHASH --- */
-  case INS_PROMPT_FEE:
-    sw = electroneum_apdu_prompt_fee();
-    break;
-  case INS_PROMPT_TX:
-    sw = electroneum_apdu_prompt_tx();
-    break;
-    
   case INS_VALIDATE:
     if (G_electroneum_vstate.io_p1 == 1) {
       sw = electroneum_apdu_mlsag_prehash_init();
@@ -279,8 +282,14 @@ int electroneum_dispatch() {
     sw = electroneum_apdu_tx_prefix_outputs_size();
     break;
   case INS_TX_PREFIX_EXTRA:
-  sw = electroneum_apdu_tx_prefix_extra();
-  break;
+    sw = electroneum_apdu_tx_prefix_extra();
+    break;
+  case INS_TX_PROMPT_FEE:
+    sw = electroneum_apdu_tx_prompt_fee();
+    break;
+  case INS_TX_PROMPT_AMOUNT:
+    sw = electroneum_apdu_tx_prompt_amount();
+    break;
 
   /* --- MLSAG --- */
   case INS_MLSAG:

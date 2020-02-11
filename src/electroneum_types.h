@@ -171,11 +171,10 @@ struct electroneum_v_state_s {
   cx_sha256_t   sha256_commitment;
   unsigned char C[32];
 
-  uint8_t* tx_prefix;
-  unsigned int tx_prefix_offset;
-  unsigned char tx_prefix_hash;
-  unsigned int vin_out_size;
-  unsigned int vin_out_index;
+  unsigned int tx_ins_amount;
+  unsigned int tx_outs_amount;
+  unsigned int tx_fee;
+  unsigned int tx_total_amount;  
 
   /* ------------------------------------------ */
   /* ---               UI/UX                --- */
@@ -291,6 +290,11 @@ typedef struct  electroneum_v_state_s electroneum_v_state_t;
 #define INS_TX_PREFIX_OUTPUTS               0xD4
 #define INS_TX_PREFIX_OUTPUTS_SIZE          0xD6
 #define INS_TX_PREFIX_EXTRA                 0xD8
+#define INS_TX_PROMPT_FEE                   0xDA
+#define INS_TX_PROMPT_AMOUNT                0xDC
+
+#define INS_HASH_TO_SCALAR                  0xE0
+#define INS_HASH_TO_SCALAR_BATCH            0xE2
 
 /* --- OPTIONS --- */
 #define IN_OPTION_MASK                      0x000000FF

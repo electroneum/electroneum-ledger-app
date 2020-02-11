@@ -502,6 +502,37 @@ int electroneum_apdu_scal_mul_base(/*const rct::key &sec, rct::key mulkey*/) {
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
+int electroneum_apdu_hash_to_scalar() {
+  unsigned char h[32];
+  electroneum_io_discard(0);
+
+  electroneum_keccak_final_H(h);
+  electroneum_reduce(h, h);
+
+  electroneum_io_insert(h, 32);
+  return SW_OK;
+}
+
+/* ----------------------------------------------------------------------- */
+/* ---                                                                 --- */
+/* ----------------------------------------------------------------------- */
+int electroneum_apdu_hash_to_scalar_batch(/*const ec_point a, ec_point b*/) {
+  unsigned char a[32];
+  unsigned char b[32];
+  //fetch
+  electroneum_io_fetch(a,32);
+  electroneum_io_fetch(b,32);
+  electroneum_io_discard(0);
+
+  electroneum_keccak_update_H(a,32);
+  electroneum_keccak_update_H(b,32);
+  
+  return SW_OK;
+}
+
+/* ----------------------------------------------------------------------- */
+/* ---                                                                 --- */
+/* ----------------------------------------------------------------------- */
 int electroneum_apdu_generate_keypair(/*crypto::public_key &pub, crypto::secret_key &sec*/) {
   unsigned char sec[32];
   unsigned char pub[32];
