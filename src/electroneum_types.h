@@ -175,6 +175,13 @@ struct electroneum_v_state_s {
   unsigned int tx_outs_amount;
   unsigned int tx_fee;
   unsigned int tx_total_amount;  
+  unsigned char tx_change_idx[50];
+  unsigned int tx_outs_current_index;
+  unsigned char tx_prefix_hash[32];
+
+  unsigned char dest_Aout[32];
+  unsigned char dest_Bout[32];
+  unsigned char dest_is_subaddress;
 
   /* ------------------------------------------ */
   /* ---               UI/UX                --- */
@@ -295,6 +302,7 @@ typedef struct  electroneum_v_state_s electroneum_v_state_t;
 
 #define INS_HASH_TO_SCALAR                  0xE0
 #define INS_HASH_TO_SCALAR_BATCH            0xE2
+#define INS_HASH_TO_SCALAR_INIT             0xE4
 
 /* --- OPTIONS --- */
 #define IN_OPTION_MASK                      0x000000FF

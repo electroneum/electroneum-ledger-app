@@ -53,6 +53,8 @@ void electroneum_init() {
 
   G_electroneum_vstate.protocol = 0xff;
 
+  os_memset(G_electroneum_vstate.tx_change_idx, 0, 50);
+
   //load key
   electroneum_init_private_key();
   //ux conf

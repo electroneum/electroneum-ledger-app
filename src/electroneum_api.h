@@ -38,6 +38,7 @@ int electroneum_apdu_scal_mul_key(void);
 int electroneum_apdu_scal_mul_base(void);
 int electroneum_apdu_hash_to_scalar(void);
 int electroneum_apdu_hash_to_scalar_batch(void);
+int electroneum_apdu_hash_to_scalar_init(void);
 int electroneum_apdu_generate_keypair(void);
 int electroneum_apdu_secret_key_to_public_key(void);
 int electroneum_apdu_generate_key_derivation(void);

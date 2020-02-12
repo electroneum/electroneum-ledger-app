@@ -101,6 +101,7 @@ void check_ins_access() {
   case INS_TX_PROMPT_AMOUNT:
   case INS_HASH_TO_SCALAR:
   case INS_HASH_TO_SCALAR_BATCH:
+  case INS_HASH_TO_SCALAR_INIT:
     if ((os_global_pin_is_validated() != PIN_VERIFIED) ||
         (G_electroneum_vstate.tx_in_progress != 1)) {
       break;
@@ -216,6 +217,9 @@ int electroneum_dispatch() {
     break;
   case INS_HASH_TO_SCALAR_BATCH:
     sw = electroneum_apdu_hash_to_scalar_batch();
+    break;
+  case INS_HASH_TO_SCALAR_INIT:
+    sw = electroneum_apdu_hash_to_scalar_init();
     break;
 
   /* --- ADRESSES --- */

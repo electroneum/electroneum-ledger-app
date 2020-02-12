@@ -502,6 +502,19 @@ int electroneum_apdu_scal_mul_base(/*const rct::key &sec, rct::key mulkey*/) {
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
+int electroneum_apdu_hash_to_scalar_init() {
+
+
+  electroneum_keccak_init_H();
+  electroneum_keccak_update_H(G_electroneum_vstate.tx_prefix_hash, 32);
+
+  electroneum_io_discard(0);
+  return SW_OK;
+}
+
+/* ----------------------------------------------------------------------- */
+/* ---                                                                 --- */
+/* ----------------------------------------------------------------------- */
 int electroneum_apdu_hash_to_scalar() {
   unsigned char h[32];
   electroneum_io_discard(0);
@@ -814,10 +827,15 @@ int electroneum_apu_generate_txout_keys(/*size_t tx_version, crypto::secret_key 
       os_memset(additional_txkey_pub, 0, 32);
   }
 
+  G_electroneum_vstate.tx_change_idx[output_index] = is_change;
+
   //derivation
   if (is_change) {
     electroneum_generate_key_derivation(derivation, txkey_pub, G_electroneum_vstate.a);
   } else {
+    memcpy(G_electroneum_vstate.dest_Aout, Aout, 32);
+    memcpy(G_electroneum_vstate.dest_Bout, Bout, 32);
+    G_electroneum_vstate.dest_is_subaddress = is_subaddress;
     electroneum_generate_key_derivation(derivation, Aout, (is_subaddress && need_additional_txkeys) ? additional_txkey_sec : tx_key);
   }
 

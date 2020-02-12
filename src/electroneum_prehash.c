@@ -203,28 +203,26 @@ int electroneum_apdu_mlsag_prehash_finalize() {
 int electroneum_apdu_tx_prompt_amount() {
     
     if (G_electroneum_vstate.sig_mode == TRANSACTION_CREATE_REAL) {
-        unsigned char *Aout = NULL;
-        unsigned char *Bout = NULL;
-        unsigned int total;
-        bool is_subaddress;
-        bool is_change;
+        unsigned int total = 0;
 
-        Aout = G_electroneum_vstate.io_buffer+G_electroneum_vstate.io_offset; electroneum_io_fetch(NULL,32);
-        Bout = G_electroneum_vstate.io_buffer+G_electroneum_vstate.io_offset; electroneum_io_fetch(NULL,32);
-        total = electroneum_io_fetch_u32();
-        is_change = electroneum_io_fetch_u8();
-        is_subaddress = electroneum_io_fetch_u8();
-        electroneum_base58_public_key(&G_electroneum_vstate.ux_address[0], Aout, Bout, is_subaddress, NULL);
+        if(G_electroneum_vstate.tx_total_amount == 0) {
+            total = G_electroneum_vstate.tx_ins_amount-G_electroneum_vstate.tx_fee;
+        } else {
+            total = G_electroneum_vstate.tx_total_amount;
+        }
+
+        electroneum_base58_public_key(&G_electroneum_vstate.ux_address[0], G_electroneum_vstate.dest_Aout, G_electroneum_vstate.dest_Bout, G_electroneum_vstate.dest_is_subaddress, NULL);
         electroneum_amount2str(total, G_electroneum_vstate.ux_amount, 15);
 
         electroneum_io_discard(1);
 
-        if (!is_change) {
-            ui_menu_validation_display(0);
-        } else  {
-            ui_menu_change_validation_display(0);
-        }
+        ui_menu_validation_display(0);
+
+        //reset indexes
+        os_memset(G_electroneum_vstate.tx_change_idx, 0, 50);
+
         return 0;
+        
 
     }
     electroneum_io_discard(1);
@@ -234,7 +232,8 @@ int electroneum_apdu_tx_prompt_amount() {
 int electroneum_apdu_tx_prompt_fee() {
     if (G_electroneum_vstate.sig_mode == TRANSACTION_CREATE_REAL) {
 
-        electroneum_amount2str(G_electroneum_vstate.tx_ins_amount-G_electroneum_vstate.tx_outs_amount, G_electroneum_vstate.ux_amount, 15);
+        G_electroneum_vstate.tx_fee = G_electroneum_vstate.tx_ins_amount-G_electroneum_vstate.tx_outs_amount;
+        electroneum_amount2str(G_electroneum_vstate.tx_fee, G_electroneum_vstate.ux_amount, 15);
 
         electroneum_io_discard(1);
         ui_menu_fee_validation_display(0);
@@ -248,6 +247,8 @@ void add_to_tx_prefix(unsigned int num) {
     unsigned char varint[8] = {0};
     unsigned int size = electroneum_encode_varint(varint, num);
     electroneum_keccak_update_H(varint, size);
+
+    electroneum_io_insert(varint, size);
 }
 
 int electroneum_apdu_tx_prefix_start() {
@@ -259,6 +260,9 @@ int electroneum_apdu_tx_prefix_start() {
 
     G_electroneum_vstate.tx_ins_amount = 0;
     G_electroneum_vstate.tx_outs_amount = 0;
+    G_electroneum_vstate.tx_fee = 0;
+    G_electroneum_vstate.tx_outs_current_index = 0;
+    G_electroneum_vstate.tx_total_amount = 0;
 
     electroneum_keccak_init_H();
 
@@ -286,6 +290,7 @@ int electroneum_apdu_tx_prefix_inputs() {
     add_to_tx_prefix(key_offset);
 
     electroneum_keccak_update_H(k_image, 32);
+    electroneum_io_insert(k_image, 32);
 
     return SW_OK;
 }
@@ -298,12 +303,18 @@ int electroneum_apdu_tx_prefix_outputs() {
 
     electroneum_io_discard(0);
 
+    if(!G_electroneum_vstate.tx_change_idx[G_electroneum_vstate.tx_outs_current_index]) {
+        G_electroneum_vstate.tx_total_amount += amount;
+    }
+
     G_electroneum_vstate.tx_outs_amount += amount;
+    G_electroneum_vstate.tx_outs_current_index++;
 
     add_to_tx_prefix(amount);
     add_to_tx_prefix(2);
 
     electroneum_keccak_update_H(key, 32);
+    electroneum_io_insert(key, 32);
 
     return SW_OK;
 }
@@ -328,13 +339,12 @@ int electroneum_apdu_tx_prefix_extra() {
     add_to_tx_prefix(extra_size);
 
     electroneum_keccak_update_H(extra, extra_size);
+    electroneum_io_insert(extra, extra_size);
 
     unsigned char  h[32];
     electroneum_keccak_final_H(h);
 
-    //init keccak for the hash_to_scalar during ring signatures
-    electroneum_keccak_init_H();
-    electroneum_keccak_update_H(h, 32);
+    os_memcpy(G_electroneum_vstate.tx_prefix_hash, h, 32);
 
     return SW_OK;
 }
