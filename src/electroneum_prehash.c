@@ -205,18 +205,23 @@ int electroneum_apdu_tx_prompt_amount() {
     if (G_electroneum_vstate.sig_mode == TRANSACTION_CREATE_REAL) {
         unsigned int total = 0;
 
-        if(G_electroneum_vstate.tx_total_amount == 0) {
-            total = G_electroneum_vstate.tx_ins_amount-G_electroneum_vstate.tx_fee;
-        } else {
+        if(G_electroneum_vstate.tx_total_amount > 0) {
             total = G_electroneum_vstate.tx_total_amount;
+
+            electroneum_base58_public_key(&G_electroneum_vstate.ux_address[0], G_electroneum_vstate.dest_Aout, G_electroneum_vstate.dest_Bout, G_electroneum_vstate.dest_is_subaddress, NULL);
+            electroneum_amount2str(total, G_electroneum_vstate.ux_amount, 15);
+
+            electroneum_io_discard(1);
+            ui_menu_validation_display(0);
+
+        } else { //loopback tx
+            total = G_electroneum_vstate.tx_outs_amount;
+            electroneum_amount2str(total, G_electroneum_vstate.ux_amount, 15);
+            electroneum_amount2str(G_electroneum_vstate.tx_ins_count*100, G_electroneum_vstate.ux_inputs, 15);
+
+            electroneum_io_discard(1);
+            ui_menu_validation_loopback_display(0);
         }
-
-        electroneum_base58_public_key(&G_electroneum_vstate.ux_address[0], G_electroneum_vstate.dest_Aout, G_electroneum_vstate.dest_Bout, G_electroneum_vstate.dest_is_subaddress, NULL);
-        electroneum_amount2str(total, G_electroneum_vstate.ux_amount, 15);
-
-        electroneum_io_discard(1);
-
-        ui_menu_validation_display(0);
 
         //reset indexes
         os_memset(G_electroneum_vstate.tx_change_idx, 0, 50);
@@ -258,6 +263,7 @@ int electroneum_apdu_tx_prefix_start() {
 
     electroneum_io_discard(1);
 
+    G_electroneum_vstate.tx_ins_count = 0;
     G_electroneum_vstate.tx_ins_amount = 0;
     G_electroneum_vstate.tx_outs_amount = 0;
     G_electroneum_vstate.tx_fee = 0;
@@ -283,6 +289,7 @@ int electroneum_apdu_tx_prefix_inputs() {
     electroneum_io_discard(0);
 
     G_electroneum_vstate.tx_ins_amount += amount;
+    G_electroneum_vstate.tx_ins_count++;
 
     add_to_tx_prefix(2);
     add_to_tx_prefix(amount);

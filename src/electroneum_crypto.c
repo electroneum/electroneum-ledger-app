@@ -836,6 +836,9 @@ int electroneum_amount2str(uint64_t ETN,  char *str, unsigned int str_len) {
     while((stramount[len]=='0') && (stramount[len] != '.')) {
         len--;
     }
+    if(stramount[len] == '.') {
+        len--;
+    }
     len = len-offset+1;
     ov = 0;
     if (len>(str_len-1)) {

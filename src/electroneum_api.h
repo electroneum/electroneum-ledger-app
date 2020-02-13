@@ -108,6 +108,7 @@ int electroneum_amount2str(uint64_t etn,  char *str, unsigned int str_len);
 int electroneum_abort_tx() ;
 int electroneum_unblind(unsigned char *v, unsigned char *k, unsigned char *AKout, unsigned int short_amount);
 void ui_menu_validation_display(unsigned int value) ;
+void ui_menu_validation_loopback_display(unsigned int value) ;
 void ui_menu_fee_validation_display(unsigned int value) ;
 void ui_menu_change_validation_display(unsigned int value) ;
 

@@ -171,6 +171,8 @@ struct electroneum_v_state_s {
   cx_sha256_t   sha256_commitment;
   unsigned char C[32];
 
+  unsigned int tx_ins_count;
+
   unsigned int tx_ins_amount;
   unsigned int tx_outs_amount;
   unsigned int tx_fee;
@@ -200,6 +202,7 @@ struct electroneum_v_state_s {
       char            ux_address[132];
       // ETN to display: max pow(2,64) unit, aka 20-chars + '0' + dot + null
       char            ux_amount[23];
+      char            ux_inputs[23];
       // addr mode
       unsigned char disp_addr_mode;
       //M.m address
