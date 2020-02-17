@@ -223,9 +223,6 @@ int electroneum_apdu_tx_prompt_amount() {
             ui_menu_validation_loopback_display(0);
         }
 
-        //reset indexes
-        os_memset(G_electroneum_vstate.tx_change_idx, 0, 50);
-
         return 0;
         
 
@@ -310,7 +307,13 @@ int electroneum_apdu_tx_prefix_outputs() {
 
     electroneum_io_discard(0);
 
-    if(!G_electroneum_vstate.tx_change_idx[G_electroneum_vstate.tx_outs_current_index]) {
+    //read tx_change_idx bit-by-bit
+    unsigned int memblock = G_electroneum_vstate.tx_outs_current_index / 8;
+    uint8_t shift = G_electroneum_vstate.tx_outs_current_index == 0 ? 0 : (G_electroneum_vstate.tx_outs_current_index - 8*memblock) % 8;
+
+    bool is_change = G_electroneum_vstate.tx_change_idx[memblock] & (1 << shift);
+
+    if(!is_change) {
         G_electroneum_vstate.tx_total_amount += amount;
     }
 
@@ -352,6 +355,9 @@ int electroneum_apdu_tx_prefix_extra() {
     electroneum_keccak_final_H(h);
 
     os_memcpy(G_electroneum_vstate.tx_prefix_hash, h, 32);
+
+    //reset indexes
+    os_memset(G_electroneum_vstate.tx_change_idx, 0, 50);
 
     return SW_OK;
 }

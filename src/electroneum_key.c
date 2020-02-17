@@ -827,11 +827,14 @@ int electroneum_apu_generate_txout_keys(/*size_t tx_version, crypto::secret_key 
       os_memset(additional_txkey_pub, 0, 32);
   }
 
-  G_electroneum_vstate.tx_change_idx[output_index] = is_change;
-
   //derivation
   if (is_change) {
     electroneum_generate_key_derivation(derivation, txkey_pub, G_electroneum_vstate.a);
+
+    //set tx_change_idx bit-by-bit
+    unsigned int memblock = output_index / 8;
+    uint8_t shift = output_index == 0 ? 0 : (output_index - 8*memblock) % 8;
+    G_electroneum_vstate.tx_change_idx[memblock] = G_electroneum_vstate.tx_change_idx[memblock] | (1 << shift);
   } else {
     memcpy(G_electroneum_vstate.dest_Aout, Aout, 32);
     memcpy(G_electroneum_vstate.dest_Bout, Bout, 32);
