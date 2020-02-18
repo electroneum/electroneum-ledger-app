@@ -246,8 +246,8 @@ int electroneum_apdu_tx_prompt_fee() {
 }
 
 void add_to_tx_prefix(uint64_t num) {
-    unsigned char varint[9] = {0};
-    unsigned int size = electroneum_encode_64_varint(varint, num);
+    unsigned char varint[10] = {0};
+    unsigned int size = electroneum_encode_varint(varint, num);
     electroneum_keccak_update_H(varint, size);
 
     electroneum_io_insert(varint, size);

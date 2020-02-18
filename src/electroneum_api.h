@@ -211,8 +211,7 @@ int  electroneum_hash(unsigned int algo, cx_hash_t * hasher, unsigned char* buf,
 /**
  * LE-7-bits encoding. High bit set says one more byte to decode.
  */
-unsigned int electroneum_encode_varint(unsigned char varint[8], unsigned int out_idx);
-unsigned int electroneum_encode_64_varint(uint8_t varint[static 9], uint64_t out_idx);
+unsigned int electroneum_encode_varint(unsigned char* varint, uint64_t out_idx);
 /** */
 void electroneum_reverse32(unsigned char *rscal, unsigned char *scal);
 

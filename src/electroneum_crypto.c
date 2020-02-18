@@ -78,35 +78,17 @@ void electroneum_aes_generate(cx_aes_key_t *sk) {
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-unsigned int electroneum_encode_varint(unsigned char varint[8], unsigned int out_idx) {
+unsigned int electroneum_encode_varint(uint8_t* varint, uint64_t out_idx) {
     unsigned int len;
     len = 0;
     while(out_idx >= 0x80) {
-        varint[len] = (out_idx & 0x7F) | 0x80;
+        varint[len] = ((uint8_t)(out_idx & 0x7F)) | 0x80;
         out_idx = out_idx>>7;
         len++;
     }
-    varint[len] = out_idx;
+    varint[len] = ((uint8_t)out_idx) & 0x7F;
     len++;
     return len;
-}
-
-/* ----------------------------------------------------------------------- */
-/* ---                                                                 --- */
-/* ----------------------------------------------------------------------- */
-unsigned int electroneum_encode_64_varint(uint8_t varint[static 9], uint64_t out_idx) {
-    if (out_idx > UINT64_MAX / 2)
-        return 0;
-
-    size_t i = 0;
-
-    while (out_idx >= 0x80) {
-        varint[i++] = (uint8_t)(out_idx) | 0x80;
-        out_idx >>= 7;
-    }
-
-    varint[i++] = (uint8_t)(out_idx);
-    return i;
 }
 
 /* ----------------------------------------------------------------------- */
