@@ -41,7 +41,6 @@ const unsigned char C_FAKE_SEC_SPEND_KEY[32] = {
 /* ----------------------------------------------------------------------- */
 void electroneum_init() {
   os_memset(&G_electroneum_vstate, 0, sizeof(electroneum_v_state_t));
-
   //first init ?
   if (os_memcmp((void*)N_electroneum_pstate->magic, (void*)C_MAGIC, sizeof(C_MAGIC)) != 0) {
     #ifdef ELECTRONEUM_ALPHA

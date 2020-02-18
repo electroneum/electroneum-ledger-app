@@ -173,10 +173,10 @@ struct electroneum_v_state_s {
 
   unsigned int tx_ins_count;
 
-  unsigned int tx_ins_amount;
-  unsigned int tx_outs_amount;
+  uint64_t tx_ins_amount;
+  uint64_t tx_outs_amount;
   unsigned int tx_fee;
-  unsigned int tx_total_amount;  
+  uint64_t tx_total_amount;
 
   unsigned char tx_prefix_hash[32];
 

@@ -94,6 +94,24 @@ unsigned int electroneum_encode_varint(unsigned char varint[8], unsigned int out
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
+unsigned int electroneum_encode_64_varint(uint8_t varint[static 9], uint64_t out_idx) {
+    if (out_idx > UINT64_MAX / 2)
+        return 0;
+
+    size_t i = 0;
+
+    while (out_idx >= 0x80) {
+        varint[i++] = (uint8_t)(out_idx) | 0x80;
+        out_idx >>= 7;
+    }
+
+    varint[i++] = (uint8_t)(out_idx);
+    return i;
+}
+
+/* ----------------------------------------------------------------------- */
+/* ---                                                                 --- */
+/* ----------------------------------------------------------------------- */
 void electroneum_reverse32(unsigned char *rscal, unsigned char *scal) {
     unsigned char x;
     unsigned int i;

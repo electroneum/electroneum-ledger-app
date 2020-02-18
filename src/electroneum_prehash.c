@@ -203,7 +203,7 @@ int electroneum_apdu_mlsag_prehash_finalize() {
 int electroneum_apdu_tx_prompt_amount() {
     
     if (G_electroneum_vstate.sig_mode == TRANSACTION_CREATE_REAL) {
-        unsigned int total = 0;
+        uint64_t total = 0;
 
         if(G_electroneum_vstate.tx_total_amount > 0) {
             total = G_electroneum_vstate.tx_total_amount;
@@ -245,9 +245,9 @@ int electroneum_apdu_tx_prompt_fee() {
     return SW_OK;
 }
 
-void add_to_tx_prefix(unsigned int num) {
-    unsigned char varint[8] = {0};
-    unsigned int size = electroneum_encode_varint(varint, num);
+void add_to_tx_prefix(uint64_t num) {
+    unsigned char varint[9] = {0};
+    unsigned int size = electroneum_encode_64_varint(varint, num);
     electroneum_keccak_update_H(varint, size);
 
     electroneum_io_insert(varint, size);
@@ -277,7 +277,12 @@ int electroneum_apdu_tx_prefix_start() {
 }
 
 int electroneum_apdu_tx_prefix_inputs() {
-    unsigned int amount = electroneum_io_fetch_u32();
+    uint64_t amount = electroneum_io_fetch_u64();
+
+    //unsigned char buffer[sizeof(amount)];
+    //memcpy(buffer, &amount, sizeof(amount));
+    //PRINTF("64 Bit Amount:\n %.*H \n\n", sizeof(buffer), buffer);
+
     unsigned int key_offset = electroneum_io_fetch_u32();
     unsigned char k_image[32];
     
@@ -300,9 +305,8 @@ int electroneum_apdu_tx_prefix_inputs() {
 }
 
 int electroneum_apdu_tx_prefix_outputs() {
-    unsigned int amount = electroneum_io_fetch_u32();
+    uint64_t amount = electroneum_io_fetch_u64();
     unsigned char key[32];
-    
     electroneum_io_fetch(key,32);
 
     electroneum_io_discard(0);
