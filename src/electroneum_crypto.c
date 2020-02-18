@@ -79,6 +79,10 @@ void electroneum_aes_generate(cx_aes_key_t *sk) {
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
 unsigned int electroneum_encode_varint(uint8_t* varint, uint64_t out_idx) {
+
+    if (out_idx > UINT64_MAX / 2)
+        return 0;
+        
     unsigned int len;
     len = 0;
     while(out_idx >= 0x80) {
