@@ -158,7 +158,7 @@ void electroneum_install(unsigned char netId) {
 /* ----------------------------------------------------------------------- */
 #define ELECTRONEUM_SUPPORTED_CLIENT_SIZE 1
 const char * const electroneum_supported_client[ELECTRONEUM_SUPPORTED_CLIENT_SIZE] = {
-  "3.1.0.1"
+  "3.2.0.0"
 };
 
 int electroneum_apdu_reset() {
