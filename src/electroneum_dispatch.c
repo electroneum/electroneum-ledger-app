@@ -92,6 +92,16 @@ void check_ins_access() {
   case INS_GEN_COMMITMENT_MASK:
   case INS_PROMPT_FEE:
   case INS_PROMPT_TX:
+  case INS_TX_PREFIX_START:
+  case INS_TX_PREFIX_INPUTS:
+  case INS_TX_PREFIX_OUTPUTS:
+  case INS_TX_PREFIX_OUTPUTS_SIZE:
+  case INS_TX_PREFIX_EXTRA:
+  case INS_TX_PROMPT_FEE:
+  case INS_TX_PROMPT_AMOUNT:
+  case INS_HASH_TO_SCALAR:
+  case INS_HASH_TO_SCALAR_BATCH:
+  case INS_HASH_TO_SCALAR_INIT:
     if ((os_global_pin_is_validated() != PIN_VERIFIED) ||
         (G_electroneum_vstate.tx_in_progress != 1)) {
       break;
@@ -202,6 +212,15 @@ int electroneum_dispatch() {
   case INS_SECRET_SCAL_MUL_BASE:
     sw = electroneum_apdu_scal_mul_base();
     break;
+  case INS_HASH_TO_SCALAR:
+    sw = electroneum_apdu_hash_to_scalar();
+    break;
+  case INS_HASH_TO_SCALAR_BATCH:
+    sw = electroneum_apdu_hash_to_scalar_batch();
+    break;
+  case INS_HASH_TO_SCALAR_INIT:
+    sw = electroneum_apdu_hash_to_scalar_init();
+    break;
 
   /* --- ADRESSES --- */
   case INS_DERIVE_SUBADDRESS_PUBLIC_KEY:
@@ -242,13 +261,6 @@ int electroneum_dispatch() {
     break;
 
     /* --- VALIDATE/PREHASH --- */
-  case INS_PROMPT_FEE:
-    sw = electroneum_apdu_prompt_fee();
-    break;
-  case INS_PROMPT_TX:
-    sw = electroneum_apdu_prompt_tx();
-    break;
-    
   case INS_VALIDATE:
     if (G_electroneum_vstate.io_p1 == 1) {
       sw = electroneum_apdu_mlsag_prehash_init();
@@ -259,6 +271,28 @@ int electroneum_dispatch() {
     } else {
       THROW(SW_WRONG_P1P2);
     }
+    break;
+
+  case INS_TX_PREFIX_START:
+    sw = electroneum_apdu_tx_prefix_start();
+    break;
+  case INS_TX_PREFIX_INPUTS:
+    sw = electroneum_apdu_tx_prefix_inputs();
+    break;
+  case INS_TX_PREFIX_OUTPUTS:
+    sw = electroneum_apdu_tx_prefix_outputs();
+    break;
+  case INS_TX_PREFIX_OUTPUTS_SIZE:
+    sw = electroneum_apdu_tx_prefix_outputs_size();
+    break;
+  case INS_TX_PREFIX_EXTRA:
+    sw = electroneum_apdu_tx_prefix_extra();
+    break;
+  case INS_TX_PROMPT_FEE:
+    sw = electroneum_apdu_tx_prompt_fee();
+    break;
+  case INS_TX_PROMPT_AMOUNT:
+    sw = electroneum_apdu_tx_prompt_amount();
     break;
 
   /* --- MLSAG --- */

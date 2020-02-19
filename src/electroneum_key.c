@@ -502,6 +502,50 @@ int electroneum_apdu_scal_mul_base(/*const rct::key &sec, rct::key mulkey*/) {
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
+int electroneum_apdu_hash_to_scalar_init() {
+
+
+  electroneum_keccak_init_H();
+  electroneum_keccak_update_H(G_electroneum_vstate.tx_prefix_hash, 32);
+
+  electroneum_io_discard(0);
+  return SW_OK;
+}
+
+/* ----------------------------------------------------------------------- */
+/* ---                                                                 --- */
+/* ----------------------------------------------------------------------- */
+int electroneum_apdu_hash_to_scalar() {
+  unsigned char h[32];
+  electroneum_io_discard(0);
+
+  electroneum_keccak_final_H(h);
+  electroneum_reduce(h, h);
+
+  electroneum_io_insert(h, 32);
+  return SW_OK;
+}
+
+/* ----------------------------------------------------------------------- */
+/* ---                                                                 --- */
+/* ----------------------------------------------------------------------- */
+int electroneum_apdu_hash_to_scalar_batch(/*const ec_point a, ec_point b*/) {
+  unsigned char a[32];
+  unsigned char b[32];
+  //fetch
+  electroneum_io_fetch(a,32);
+  electroneum_io_fetch(b,32);
+  electroneum_io_discard(0);
+
+  electroneum_keccak_update_H(a,32);
+  electroneum_keccak_update_H(b,32);
+  
+  return SW_OK;
+}
+
+/* ----------------------------------------------------------------------- */
+/* ---                                                                 --- */
+/* ----------------------------------------------------------------------- */
 int electroneum_apdu_generate_keypair(/*crypto::public_key &pub, crypto::secret_key &sec*/) {
   unsigned char sec[32];
   unsigned char pub[32];
@@ -786,7 +830,15 @@ int electroneum_apu_generate_txout_keys(/*size_t tx_version, crypto::secret_key 
   //derivation
   if (is_change) {
     electroneum_generate_key_derivation(derivation, txkey_pub, G_electroneum_vstate.a);
+
+    //set tx_change_idx bit-by-bit
+    unsigned int memblock = output_index / 8;
+    uint8_t shift = output_index == 0 ? 0 : (output_index - 8*memblock) % 8;
+    G_electroneum_vstate.tx_change_idx[memblock] = G_electroneum_vstate.tx_change_idx[memblock] | (1 << shift);
   } else {
+    memcpy(G_electroneum_vstate.dest_Aout, Aout, 32);
+    memcpy(G_electroneum_vstate.dest_Bout, Bout, 32);
+    G_electroneum_vstate.dest_is_subaddress = is_subaddress;
     electroneum_generate_key_derivation(derivation, Aout, (is_subaddress && need_additional_txkeys) ? additional_txkey_sec : tx_key);
   }
 

@@ -150,6 +150,11 @@ int electroneum_base58_public_key(char* str_b58, unsigned char *view, unsigned c
     unsigned int last_block_size  = (offset) % FULL_BLOCK_SIZE;
     for (size_t i = 0; i < full_block_count; ++i) {
         encode_block(data + i * FULL_BLOCK_SIZE, FULL_BLOCK_SIZE, &str_b58[i * FULL_ENCODED_BLOCK_SIZE]);
+        
+        // Hard fix to correctly display some addresses on device screen
+        if(str_b58[i * FULL_ENCODED_BLOCK_SIZE] == 0) {
+            str_b58[i * FULL_ENCODED_BLOCK_SIZE] = '1';
+        }
     }
 
     if (0 < last_block_size) {

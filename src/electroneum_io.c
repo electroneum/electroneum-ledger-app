@@ -287,6 +287,17 @@ int electroneum_io_fetch_decrypt_key(unsigned char* buffer) {
   }
 }
 
+uint64_t electroneum_io_fetch_u64() {
+    uint64_t v64;
+    electroneum_io_assert_available(8);
+    for (int i = 0; i < 8; ++i) {
+        v64 = (v64 << 8) | G_electroneum_vstate.io_buffer[G_electroneum_vstate.io_offset+i];
+    }
+    G_electroneum_vstate.io_offset += 8;
+
+    return v64;
+}
+
 unsigned int electroneum_io_fetch_u32() {
   unsigned int  v32;
   electroneum_io_assert_available(4);

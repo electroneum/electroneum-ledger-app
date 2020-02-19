@@ -110,7 +110,7 @@ else
 DEFINES		  += IO_SEPROXYHAL_BUFFER_SIZE_B=128
 endif
 
-
+DEFINES += HAVE_SPRINTF HAVE_PRINTF PRINTF=screen_printf
 # Enabling debug PRINTF
 DEBUG = 0
 ifneq ($(DEBUG),0)
@@ -124,7 +124,7 @@ ifneq ($(DEBUG),0)
 
 else
 
-	DEFINES   += PRINTF\(...\)=
+	#DEFINES   += PRINTF\(...\)=
 	DEFINES   += PLINE\(...\)=
 
 endif

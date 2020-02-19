@@ -257,6 +257,54 @@ void ui_menu_validation_action(unsigned int value) {
 }
 
 
+/* ----------------------------- LOOPBACK TX - USER DEST/AMOUNT VALIDATION ----------------------------- */
+void ui_menu_validation_loopback_action(unsigned int value);
+
+const ux_menu_entry_t ui_menu_validation_loopback[] = {
+  {NULL,  NULL,                       1,      NULL,  "Loopback",       "TX",         0, 0},
+  {NULL,  NULL,                       3,      NULL,  "?inputs.2?",     "INPUTS",     0, 0},
+  {NULL,  NULL,                       4,      NULL,  "For total of",   "?amount?",   0, 0},
+  {NULL,  ui_menu_validation_loopback_action,  REJECT, NULL,  "Reject",       "TX",         0, 0},
+  {NULL,  ui_menu_validation_loopback_action,  ACCEPT, NULL,  "Accept",       "TX",         0, 0},
+  UX_MENU_END
+};
+
+const bagl_element_t* ui_menu_validation_loopback_preprocessor(const ux_menu_entry_t* entry, bagl_element_t* element) {
+
+
+  if (entry == &ui_menu_validation_loopback[1]) {
+    if(element->component.userid==0x21) {
+      element->text = G_electroneum_vstate.ux_inputs;
+    }
+  }
+
+  if (entry == &ui_menu_validation_loopback[2]) {
+    if(element->component.userid==0x22) {
+      element->text = G_electroneum_vstate.ux_amount;
+    }
+  }
+
+  return element;
+}
+
+void ui_menu_validation_loopback_display(unsigned int value) {
+  UX_MENU_DISPLAY(0, ui_menu_validation_loopback, ui_menu_validation_loopback_preprocessor);
+}
+
+void ui_menu_validation_loopback_action(unsigned int value) {
+  unsigned short sw;
+  if (value == ACCEPT) {
+    sw = 0x9000;
+  } else {
+   sw = SW_SECURITY_STATUS_NOT_SATISFIED;
+    electroneum_abort_tx();
+  }
+  electroneum_io_insert_u16(sw);
+  electroneum_io_do(IO_RETURN_AFTER_TX);
+  ui_menu_main_display(0);
+}
+
+
 
 /* -------------------------------- EXPORT VIEW KEY UX --------------------------------- */
 unsigned int ui_export_viewkey_prepro(const  bagl_element_t* element);

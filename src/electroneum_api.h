@@ -36,6 +36,9 @@ int electroneum_apdu_sc_add(void);
 int electroneum_apdu_sc_sub(void);
 int electroneum_apdu_scal_mul_key(void);
 int electroneum_apdu_scal_mul_base(void);
+int electroneum_apdu_hash_to_scalar(void);
+int electroneum_apdu_hash_to_scalar_batch(void);
+int electroneum_apdu_hash_to_scalar_init(void);
 int electroneum_apdu_generate_keypair(void);
 int electroneum_apdu_secret_key_to_public_key(void);
 int electroneum_apdu_generate_key_derivation(void);
@@ -63,8 +66,13 @@ int electroneum_apdu_mlsag_prehash_init(void);
 int electroneum_apdu_mlsag_prehash_update(void);
 int electroneum_apdu_mlsag_prehash_finalize(void);
 int electroneum_apu_generate_txout_keys(void);
-int electroneum_apdu_prompt_fee(void);
-int electroneum_apdu_prompt_tx(void);
+int electroneum_apdu_tx_prompt_fee(void);
+int electroneum_apdu_tx_prompt_amount(void);
+int electroneum_apdu_tx_prefix_start(void);
+int electroneum_apdu_tx_prefix_inputs(void);
+int electroneum_apdu_tx_prefix_outputs(void);
+int electroneum_apdu_tx_prefix_outputs_size(void);
+int electroneum_apdu_tx_prefix_extra(void);
 
 int electroneum_apdu_mlsag_prepare(void);
 int electroneum_apdu_mlsag_hash(void);
@@ -100,6 +108,7 @@ int electroneum_amount2str(uint64_t etn,  char *str, unsigned int str_len);
 int electroneum_abort_tx() ;
 int electroneum_unblind(unsigned char *v, unsigned char *k, unsigned char *AKout, unsigned int short_amount);
 void ui_menu_validation_display(unsigned int value) ;
+void ui_menu_validation_loopback_display(unsigned int value) ;
 void ui_menu_fee_validation_display(unsigned int value) ;
 void ui_menu_change_validation_display(unsigned int value) ;
 
@@ -202,19 +211,7 @@ int  electroneum_hash(unsigned int algo, cx_hash_t * hasher, unsigned char* buf,
 /**
  * LE-7-bits encoding. High bit set says one more byte to decode.
  */
-unsigned int electroneum_encode_varint(unsigned char varint[8], unsigned int out_idx);
-
-/**
- * Decoder for serialising the tx prefix (portable binary archive type serialisation) -see serialisation.txt in
- * the main repo for more information
- */
-size_t electroneum_encode_varint_portable_binary_archive(uint8_t buf[static 9], uint64_t num);
-/**
- * Decoder for serialising the tx prefix (portable binary archive type deserialisation) -see serialisation.txt in
- * the main repo for more information
- */
-size_t electroneum_decode_varint_portable_binary_archive(const uint8_t buf[], size_t size_max, uint64_t *num);
-
+unsigned int electroneum_encode_varint(unsigned char* varint, uint64_t out_idx);
 /** */
 void electroneum_reverse32(unsigned char *rscal, unsigned char *scal);
 
@@ -309,6 +306,7 @@ void electroneum_io_insert_tl(unsigned int T, unsigned int L) ;
 void electroneum_io_insert_tlv(unsigned int T, unsigned int L, unsigned char const *V) ;
 
 void electroneum_io_fetch_buffer(unsigned char  * buffer, unsigned int len) ;
+uint64_t     electroneum_io_fetch_u64(void) ;
 unsigned int electroneum_io_fetch_u32(void) ;
 unsigned int electroneum_io_fetch_u24(void) ;
 unsigned int electroneum_io_fetch_u16(void) ;

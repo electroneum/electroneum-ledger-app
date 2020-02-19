@@ -171,6 +171,22 @@ struct electroneum_v_state_s {
   cx_sha256_t   sha256_commitment;
   unsigned char C[32];
 
+  unsigned int tx_ins_count;
+
+  uint64_t tx_ins_amount;
+  uint64_t tx_outs_amount;
+  unsigned int tx_fee;
+  uint64_t tx_total_amount;
+
+  unsigned char tx_prefix_hash[32];
+
+  unsigned char tx_change_idx[50];
+  unsigned int tx_outs_current_index;
+
+  unsigned char dest_Aout[32];
+  unsigned char dest_Bout[32];
+  unsigned char dest_is_subaddress;
+
   /* ------------------------------------------ */
   /* ---               UI/UX                --- */
   /* ------------------------------------------ */
@@ -188,6 +204,7 @@ struct electroneum_v_state_s {
       char            ux_address[132];
       // ETN to display: max pow(2,64) unit, aka 20-chars + '0' + dot + null
       char            ux_amount[23];
+      char            ux_inputs[23];
       // addr mode
       unsigned char disp_addr_mode;
       //M.m address
@@ -279,6 +296,18 @@ typedef struct  electroneum_v_state_s electroneum_v_state_t;
 
 
 #define INS_GET_RESPONSE                    0xc0
+
+#define INS_TX_PREFIX_START                 0xD0
+#define INS_TX_PREFIX_INPUTS                0xD2
+#define INS_TX_PREFIX_OUTPUTS               0xD4
+#define INS_TX_PREFIX_OUTPUTS_SIZE          0xD6
+#define INS_TX_PREFIX_EXTRA                 0xD8
+#define INS_TX_PROMPT_FEE                   0xDA
+#define INS_TX_PROMPT_AMOUNT                0xDC
+
+#define INS_HASH_TO_SCALAR                  0xE0
+#define INS_HASH_TO_SCALAR_BATCH            0xE2
+#define INS_HASH_TO_SCALAR_INIT             0xE4
 
 /* --- OPTIONS --- */
 #define IN_OPTION_MASK                      0x000000FF

@@ -41,7 +41,6 @@ const unsigned char C_FAKE_SEC_SPEND_KEY[32] = {
 /* ----------------------------------------------------------------------- */
 void electroneum_init() {
   os_memset(&G_electroneum_vstate, 0, sizeof(electroneum_v_state_t));
-
   //first init ?
   if (os_memcmp((void*)N_electroneum_pstate->magic, (void*)C_MAGIC, sizeof(C_MAGIC)) != 0) {
     #ifdef ELECTRONEUM_ALPHA
@@ -52,6 +51,8 @@ void electroneum_init() {
   }
 
   G_electroneum_vstate.protocol = 0xff;
+
+  os_memset(G_electroneum_vstate.tx_change_idx, 0, 50);
 
   //load key
   electroneum_init_private_key();
@@ -157,7 +158,7 @@ void electroneum_install(unsigned char netId) {
 /* ----------------------------------------------------------------------- */
 #define ELECTRONEUM_SUPPORTED_CLIENT_SIZE 1
 const char * const electroneum_supported_client[ELECTRONEUM_SUPPORTED_CLIENT_SIZE] = {
-  "3.14.1.2"
+  "3.2.0.0"
 };
 
 int electroneum_apdu_reset() {

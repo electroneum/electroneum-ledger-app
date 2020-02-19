@@ -200,49 +200,169 @@ int electroneum_apdu_mlsag_prehash_finalize() {
     return SW_OK;
 }
 
-int electroneum_apdu_prompt_tx() {
+int electroneum_apdu_tx_prompt_amount() {
     
     if (G_electroneum_vstate.sig_mode == TRANSACTION_CREATE_REAL) {
-        unsigned char *Aout = NULL;
-        unsigned char *Bout = NULL;
-        unsigned int total;
-        bool is_subaddress;
-        bool is_change;
+        uint64_t total = 0;
 
-        Aout = G_electroneum_vstate.io_buffer+G_electroneum_vstate.io_offset; electroneum_io_fetch(NULL,32);
-        Bout = G_electroneum_vstate.io_buffer+G_electroneum_vstate.io_offset; electroneum_io_fetch(NULL,32);
-        total = electroneum_io_fetch_u32();
-        is_change = electroneum_io_fetch_u8();
-        is_subaddress = electroneum_io_fetch_u8();
-        electroneum_base58_public_key(&G_electroneum_vstate.ux_address[0], Aout, Bout, is_subaddress, NULL);
-        electroneum_amount2str(total, G_electroneum_vstate.ux_amount, 15);
+        if(G_electroneum_vstate.tx_total_amount > 0) {
+            total = G_electroneum_vstate.tx_total_amount;
 
-        electroneum_io_discard(1);
+            electroneum_base58_public_key(&G_electroneum_vstate.ux_address[0], G_electroneum_vstate.dest_Aout, G_electroneum_vstate.dest_Bout, G_electroneum_vstate.dest_is_subaddress, NULL);
+            electroneum_amount2str(total, G_electroneum_vstate.ux_amount, 15);
 
-        if (!is_change) {
+            electroneum_io_discard(1);
             ui_menu_validation_display(0);
-        } else  {
-            ui_menu_change_validation_display(0);
+
+        } else { //loopback tx
+            total = G_electroneum_vstate.tx_outs_amount;
+            electroneum_amount2str(total, G_electroneum_vstate.ux_amount, 15);
+            electroneum_amount2str(G_electroneum_vstate.tx_ins_count*100, G_electroneum_vstate.ux_inputs, 15);
+
+            electroneum_io_discard(1);
+            ui_menu_validation_loopback_display(0);
         }
+
         return 0;
+        
 
     }
     electroneum_io_discard(1);
     return SW_OK;
 }
 
-int electroneum_apdu_prompt_fee() {
+int electroneum_apdu_tx_prompt_fee() {
     if (G_electroneum_vstate.sig_mode == TRANSACTION_CREATE_REAL) {
-        unsigned int fee;
-        fee = electroneum_io_fetch_u32();
 
-        electroneum_amount2str(fee, G_electroneum_vstate.ux_amount, 15);
+        G_electroneum_vstate.tx_fee = G_electroneum_vstate.tx_ins_amount-G_electroneum_vstate.tx_outs_amount;
+        electroneum_amount2str(G_electroneum_vstate.tx_fee, G_electroneum_vstate.ux_amount, 15);
 
         electroneum_io_discard(1);
         ui_menu_fee_validation_display(0);
         return 0;
     }
     electroneum_io_discard(1);
+    return SW_OK;
+}
+
+void add_to_tx_prefix(uint64_t num) {
+    unsigned char varint[10] = {0};
+    unsigned int size = electroneum_encode_varint(varint, num);
+    electroneum_keccak_update_H(varint, size);
+
+    electroneum_io_insert(varint, size);
+}
+
+int electroneum_apdu_tx_prefix_start() {
+    unsigned int version = electroneum_io_fetch_u32();
+    unsigned int unlock_time = electroneum_io_fetch_u32();
+    unsigned int vins_size = electroneum_io_fetch_u32();
+
+    electroneum_io_discard(1);
+
+    G_electroneum_vstate.tx_ins_count = 0;
+    G_electroneum_vstate.tx_ins_amount = 0;
+    G_electroneum_vstate.tx_outs_amount = 0;
+    G_electroneum_vstate.tx_fee = 0;
+    G_electroneum_vstate.tx_outs_current_index = 0;
+    G_electroneum_vstate.tx_total_amount = 0;
+
+    electroneum_keccak_init_H();
+
+    add_to_tx_prefix(version);
+    add_to_tx_prefix(unlock_time);
+    add_to_tx_prefix(vins_size);
+    
+    return SW_OK;
+}
+
+int electroneum_apdu_tx_prefix_inputs() {
+    uint64_t amount = electroneum_io_fetch_u64();
+
+    //unsigned char buffer[sizeof(amount)];
+    //memcpy(buffer, &amount, sizeof(amount));
+    //PRINTF("64 Bit Amount:\n %.*H \n\n", sizeof(buffer), buffer);
+
+    unsigned int key_offset = electroneum_io_fetch_u32();
+    unsigned char k_image[32];
+    
+    electroneum_io_fetch(k_image,32);
+
+    electroneum_io_discard(0);
+
+    G_electroneum_vstate.tx_ins_amount += amount;
+    G_electroneum_vstate.tx_ins_count++;
+
+    add_to_tx_prefix(2);
+    add_to_tx_prefix(amount);
+    add_to_tx_prefix(1);
+    add_to_tx_prefix(key_offset);
+
+    electroneum_keccak_update_H(k_image, 32);
+    electroneum_io_insert(k_image, 32);
+
+    return SW_OK;
+}
+
+int electroneum_apdu_tx_prefix_outputs() {
+    uint64_t amount = electroneum_io_fetch_u64();
+    unsigned char key[32];
+    electroneum_io_fetch(key,32);
+
+    electroneum_io_discard(0);
+
+    //read tx_change_idx bit-by-bit
+    unsigned int memblock = G_electroneum_vstate.tx_outs_current_index / 8;
+    uint8_t shift = G_electroneum_vstate.tx_outs_current_index == 0 ? 0 : (G_electroneum_vstate.tx_outs_current_index - 8*memblock) % 8;
+
+    bool is_change = G_electroneum_vstate.tx_change_idx[memblock] & (1 << shift);
+
+    if(!is_change) {
+        G_electroneum_vstate.tx_total_amount += amount;
+    }
+
+    G_electroneum_vstate.tx_outs_amount += amount;
+    G_electroneum_vstate.tx_outs_current_index++;
+
+    add_to_tx_prefix(amount);
+    add_to_tx_prefix(2);
+
+    electroneum_keccak_update_H(key, 32);
+    electroneum_io_insert(key, 32);
+
+    return SW_OK;
+}
+
+int electroneum_apdu_tx_prefix_outputs_size() {
+    unsigned int vins_size = electroneum_io_fetch_u32();
+
+    electroneum_io_discard(0);
+
+    add_to_tx_prefix(vins_size);
+
+    return SW_OK;
+}
+
+int electroneum_apdu_tx_prefix_extra() {
+    unsigned int extra_size = electroneum_io_fetch_u32();
+    unsigned char* extra = G_electroneum_vstate.io_buffer+G_electroneum_vstate.io_offset;
+    electroneum_io_fetch(NULL,extra_size);
+
+    electroneum_io_discard(0);
+
+    add_to_tx_prefix(extra_size);
+
+    electroneum_keccak_update_H(extra, extra_size);
+    electroneum_io_insert(extra, extra_size);
+
+    unsigned char  h[32];
+    electroneum_keccak_final_H(h);
+
+    os_memcpy(G_electroneum_vstate.tx_prefix_hash, h, 32);
+
+    //reset indexes
+    os_memset(G_electroneum_vstate.tx_change_idx, 0, 50);
+
     return SW_OK;
 }
 
