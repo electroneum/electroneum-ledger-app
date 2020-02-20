@@ -1,3 +1,5 @@
+// Copyright (c) Electroneum Limited 2017-2020
+// Copyright 2017 Cedric Mesnil <cslashm@gmail.com>, Ledger SAS
 #ifndef GLYPH_badge_back_BPP
         #define GLYPH_badge_back_WIDTH 14
         #define GLYPH_badge_back_HEIGHT 14

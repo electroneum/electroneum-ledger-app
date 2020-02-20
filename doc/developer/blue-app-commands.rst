@@ -1,5 +1,6 @@
 
 ..
+   Copyright (c) Electroneum Limited 2017-2020
    Copyright 2017-2019 Cedric Mesnil <cslashm@gmail.com>, Ledger SAS <cedric@ledger.fr>
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -150,6 +151,7 @@ Author: Cédric Mesnil <cslashm@gmail.com>
 License:
 
 
+  | Copyright (c) Electroneum Limited 2017-2020
   | Copyright 2017-2019 Cédric Mesnil <cslashm@gmail.com>, Ledger SAS
   |
   | Licensed under the Apache License, Version 2.0 (the "License");
