@@ -25,7 +25,7 @@ Daemon setup
 You can use a local daemons, but it needs you keep them up-to-date and it takes
 around 3 days for getting the initial synchronization.
 
-Or you can use the ones running on altcoin02.node.production.gra.ledger.fr.
+Or you can use a remote daemon. 
 
 
 **Ledger Daemon setup**
@@ -37,15 +37,15 @@ A restricted electroneum daemon runs on ledger server, you can use it with
 
     >: ETN_LOGIN="--daemon-login <user>:<password>"
 
-Request the LOGIN info to cedric@ledger.fr
+Request the LOGIN info over Telegram if you need it.
 
 **Stagenet:**
 
-    >: ETN_DAEMON="--stagenet --daemon-address 149.202.94.158:38081"
+    >: ETN_DAEMON="--stagenet --daemon-address xx.xxx.xxx.xxx:26967"
 
 **Mainnet:**
 
-    >: ETN_DAEMON="149.202.94.158:18081"
+    >: ETN_DAEMON="xx.xxx.xxx.xxx:26967"
 
 
 Client setup
@@ -57,18 +57,18 @@ Unzip the content in a directory of your choice.
 
 Open a Terminal and jump in this directory.
 
-You should have a directory named electroneum-v0.x.y.z, eg: `electroneum-v0.14.0.2`
+You should have a directory named electroneum-v0.x.y.z, eg: `electroneum-v3.2.0.0`
 
 you can set a variable to that version:
 
-    >: electroneum=./electroneum-v0.14.0.2/electroneum-wallet-cli
+    >: electroneum=./electroneum-v3.2.0.0/electroneum-wallet-cli
 
 
 Create two wallets
 ------------------
 
 
-Launch the ledger electroneum appocation the device. In `settings->Change Network`, select `stagenet` or `mainnet`
+Launch the ledger electroneum application the device. In `settings->Change Network`, select `stagenet` or `mainnet`
 depending the network you are on.
 
 Create a ledger wallet,  in a shell type:
@@ -125,9 +125,9 @@ Then:
 You should get something like that:
 
     [...]: address all
-    0  524GmkF7ZcwZGjvsQ2MZUh5i1YcdufiE5ToeSs6wixVS296wJDMQwQxhgDRDfwxb3c1Bv34AWTsjjazNEnQT9S58RKCH9vh  Primary address (used)
-    1  76Ta9BiGA9fUPRJQWorbWHCuybq79m43pPubR77GjGRADTBQfo3iF5tMxCpaC91x9qYQ9CWVtMDWn4s1KDv77tE84DJsU88  (Untitled address)
-    2  75pu1mzieBj8WNaAVYa8mhUgYjTh5BBerNgHsdMjc3wd5oLZRXf9dGmS4kQx2RuXrKBRwJEUvrbCSTzhPrFUrrDDA38YMe2  (Untitled address)
+    0  etnkD4qXHH96PV28NTLdk62V948eoRnSsHGGUXD5aRW8M5mPkPmBFvYWbTFQvqyk2P36wvbahS31z9vZcQgZ8LgP1wHt66nM7A  Primary address (used)
+    1  etnk6VQVyxgRxrqf6nCd5xccehTwdaYhrWnZFYPEU8Ju4tsYjFVGfmfSvGS9Sza27gLmrf3i9sS36SqBQ4uJreyY3crDGm1FZC  (Untitled address)
+    2  etnk932mEzFJ5nmtwmNUMxd8XqXCzk3sQaMvpMMzrsmFUB2NPkpTmmDaPQzrv7oNv6BaWd2Gv9uAvUAbFD94FQYL4JPmC7Yf8M  (Untitled address)
 
 Entry zero is the main address. The two next are sub-addresses.
 
@@ -164,9 +164,9 @@ Test Plan
 =========
 
 
-To get initial funds on stagenet, contact cedric@ledger.fr
+To get initial funds on stagenet, contact us on Telegram.
 
-To get initial funds on mainnet, ....
+To get initial funds on mainnet, you will have to buy some Electroneum or earn ETN rewards.
 
 
 Test 1: transfer
