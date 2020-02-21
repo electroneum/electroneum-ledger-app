@@ -477,7 +477,7 @@ const ux_menu_entry_t ui_menu_info[] = {
   {NULL,  NULL,                 -1, NULL,          "electroneum",                   NULL, 0, 0},
   {NULL,  NULL,                 -1, NULL,          "(c) Ledger SAS",           NULL, 0, 0},
   {NULL,  NULL,                 -1, NULL,          "Spec  " XSTR(SPEC_VERSION),NULL, 0, 0},
-  {NULL,  NULL,                 -1, NULL,          "App  " XSTR(electroneum_VERSION),  NULL, 0, 0},
+  {NULL,  NULL,                 -1, NULL,          "App  " XSTR(ELECTRONEUM_VERSION),  NULL, 0, 0},
   {NULL,  ui_menu_main_display,  3, &C_badge_back, "Back",                     NULL, 61, 40},
   UX_MENU_END
 };
