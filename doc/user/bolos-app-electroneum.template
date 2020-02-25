@@ -201,7 +201,7 @@ $endfor$
 
 
 \title{electroneum Application}
-\author{Cedric Mesnil cedric@ledger.fr}
+\author{Christopher Harrison, Andre Patta}
 \date{$date$}
 
 \begin{document}
@@ -219,7 +219,7 @@ $endfor$
   \includegraphics{../common/LogoLedgerV.png}
   \centering
   \end{figure}
-  {\Large\itshape Cédric Mesnil (cedric@ledger.fr)\par}
+  {\Large\itshape Christopher Harrison, Andre Patta\par}
   \vfill
 
 % Bottom of the page
