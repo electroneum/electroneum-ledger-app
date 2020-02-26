@@ -48,7 +48,7 @@ License:
 
 Credits:
 
-This document is a modified version of an earlier work,
+This document is a modified version of an earlier work[1],
 created by Cedric Mesnil <cslashm@gmail.com>, Ledger SAS <cedric@ledger.fr>                                                                             [1]
 
 
@@ -63,7 +63,7 @@ This guide will explain how to use the Electroneum application for Ledger Blue a
 Nano S / Blue
 -------------
 
-For both, source and binary installation, use the most recent tag.
+For both, source and binary installation, use the most recent tag[2].
 
 From Binary
 ~~~~~~~~~~~~~
@@ -201,7 +201,7 @@ Nano-S Electroneum Card application usage
 Electroneum
 -----------
 
-The electroneum application is intended to be used with electroneum-wallet-cli 3.2.0.0+ on v8 network.
+The electroneum application is intended to be used with electroneum-wallet-cli 3.2.0.0+ on v8 network[3].
 
 Future compatibility will be outlined in the Ledger repo's README.
 
@@ -250,7 +250,7 @@ Creating/Restoring Wallet
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-Creating or Restoring a wallet in done in the same manner, as the key comes from the Device.
+Creating or Restoring a wallet is done in the same manner, as the key comes from the Device.
 
 The basic command is ``electroneum-wallet-cli --generate-from-device </path/to/wallet/directory>``
 
@@ -335,7 +335,7 @@ Once the transaction is prepared, the device will ask you to validate some infor
 .. image:: fee.png
     :align: middle
 
-Check if your ok with what is displayed and then scroll down and select either "Accept" or "Reject".
+Check if you're ok with what is displayed and then scroll down and select either "Accept" or "Reject".
 
 .. image:: reject_accept.png
     :align: middle
@@ -352,7 +352,7 @@ and corresponding destination.
 .. image:: address_validation.png
     :align: middle
 
-Again check if your ok with this, scroll down, and select either "Accept" or "Reject".
+Again check if you're ok with this, scroll down, and select either "Accept" or "Reject".
 
 .. image:: reject_accept.png
     :align: middle
@@ -379,5 +379,5 @@ References
 ----------
 
 * [1] *Original Document* https://github.com/LedgerHQ/ledger-app-monero/tree/master/doc/user/
-* [2] *Blockchain Github* https://github.com/electroneum/electroneum
-* [3] *Ledger App Github* https://github.com/electroneum-project/electroneum
+* [2] *Ledger App Github* https://github.com/electroneum-project/electroneum
+* [3] *Blockchain Github* https://github.com/electroneum/electroneum
