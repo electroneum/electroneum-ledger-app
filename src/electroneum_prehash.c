@@ -309,6 +309,7 @@ int electroneum_apdu_tx_prefix_outputs() {
     uint64_t amount = electroneum_io_fetch_u64();
     unsigned char key[32];
     electroneum_io_fetch(key,32);
+    unsigned int output_index = electroneum_io_fetch_u8();
 
     electroneum_io_discard(0);
 
@@ -318,10 +319,25 @@ int electroneum_apdu_tx_prefix_outputs() {
 
     bool is_change = G_electroneum_vstate.tx_change_idx[memblock] & (1 << shift);
 
+    // To ensure the outputs are really going to their intended destination,
+    // we need to check that the stealth addresses correspond to the destination A&B. So recompute P=H(rA)G+B.
+    unsigned char drvpub[32]; // stealth address P to be computed
+    unsigned char derivation[32]; // r*A
     if(!is_change) {
+        electroneum_generate_key_derivation(derivation, G_electroneum_vstate.dest_Aout, G_electroneum_vstate.r);
+        electroneum_derive_public_key(drvpub, derivation, output_index, G_electroneum_vstate.dest_Bout); // H(rA)+B
+        if(!(memcmp(drvpub, key, sizeof(drvpub)))){
+            return false;
+        }
         G_electroneum_vstate.tx_total_amount += amount;
     }
-
+    else{
+        electroneum_generate_key_derivation(derivation, G_electroneum_vstate.A, G_electroneum_vstate.r);
+        electroneum_derive_public_key(drvpub, derivation, output_index, G_electroneum_vstate.B);
+        if(!(memcmp(drvpub, key, sizeof(drvpub)))){
+            return false;
+        }
+    }
     G_electroneum_vstate.tx_outs_amount += amount;
     G_electroneum_vstate.tx_outs_current_index++;
 

@@ -619,10 +619,11 @@ int electroneum_apdu_derivation_to_scalar(/*const crypto::key_derivation &deriva
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
+// This is for a stealth address public key
 int electroneum_apdu_derive_public_key(/*const crypto::key_derivation &derivation, const std::size_t output_index, const crypto::public_key &pub, public_key &derived_pub*/) {
-  unsigned char derivation[32];
-  unsigned int  output_index;
-  unsigned char pub[32];
+  unsigned char derivation[32]; //r*A
+  unsigned int  output_index; //index of output used for hashing (H) (so all stealth addresses aren't the same (=H(rA)G+B)
+  unsigned char pub[32]; //B
   unsigned char drvpub[32];
 
   //fetch
