@@ -309,7 +309,7 @@ int electroneum_apdu_tx_prefix_outputs() {
     uint64_t amount = electroneum_io_fetch_u64();
     unsigned char key[32];
     electroneum_io_fetch(key,32);
-    unsigned int output_index = electroneum_io_fetch_u8();
+    unsigned int output_index = electroneum_io_fetch_u32();
 
     electroneum_io_discard(0);
 
