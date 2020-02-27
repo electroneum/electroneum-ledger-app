@@ -327,6 +327,8 @@ int electroneum_apdu_tx_prefix_outputs() {
         electroneum_generate_key_derivation(derivation, G_electroneum_vstate.dest_Aout, G_electroneum_vstate.r);
         electroneum_derive_public_key(drvpub, derivation, output_index, G_electroneum_vstate.dest_Bout); // H(rA)+B
         if(!(memcmp(drvpub, key, sizeof(drvpub)))){
+            //reset indexes
+            os_memset(G_electroneum_vstate.tx_change_idx, 0, 50);
             return false;
         }
         G_electroneum_vstate.tx_total_amount += amount;
@@ -335,6 +337,8 @@ int electroneum_apdu_tx_prefix_outputs() {
         electroneum_generate_key_derivation(derivation, G_electroneum_vstate.A, G_electroneum_vstate.r);
         electroneum_derive_public_key(drvpub, derivation, output_index, G_electroneum_vstate.B);
         if(!(memcmp(drvpub, key, sizeof(drvpub)))){
+            //reset indexes
+            os_memset(G_electroneum_vstate.tx_change_idx, 0, 50);
             return false;
         }
     }
