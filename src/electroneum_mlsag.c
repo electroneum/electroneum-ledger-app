@@ -1,3 +1,4 @@
+// Copyright (c) Electroneum Limited 2017-2020
 /* Copyright 2017 Cedric Mesnil <cslashm@gmail.com>, Ledger SAS
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,7 +36,7 @@ int electroneum_apdu_mlsag_prepare() {
         electroneum_io_fetch(Hi,32);
         if(G_electroneum_vstate.options &0x40) {
             electroneum_io_fetch(xin,32);
-        } else { 
+        } else {
            electroneum_io_fetch_decrypt(xin,32);
         }
         options = 1;
@@ -44,16 +45,16 @@ int electroneum_apdu_mlsag_prepare() {
     }
 
     electroneum_io_discard(1);
-    
+
     //ai
-    electroneum_rng(alpha, 32);
+    electroneum_rng_mod_order(alpha);
     electroneum_reduce(alpha, alpha);
     electroneum_io_insert_encrypt(alpha, 32);
 
     //ai.G
     electroneum_ecmul_G(mul, alpha);
     electroneum_io_insert(mul,32);
-       
+
     if (options) {
         //ai.Hi
         electroneum_ecmul_k(mul, Hi, alpha);
@@ -86,7 +87,7 @@ int electroneum_apdu_mlsag_hash() {
         electroneum_reduce(c,c);
         electroneum_io_insert(c,32);
         os_memmove(G_electroneum_vstate.c, c, 32);
-    }  
+    }
     return SW_OK;
 }
 
@@ -98,7 +99,7 @@ int electroneum_apdu_mlsag_sign() {
     unsigned char alpha[32];
     unsigned char ss[32];
     unsigned char ss2[32];
-    
+
     if (G_electroneum_vstate.sig_mode == TRANSACTION_CREATE_FAKE) {
         electroneum_io_fetch(xin,32);
         electroneum_io_fetch(alpha,32);
@@ -110,7 +111,12 @@ int electroneum_apdu_mlsag_sign() {
     }
     electroneum_io_discard(1);
 
-    electroneum_multm(ss, G_electroneum_vstate.c, xin);
+
+    electroneum_reduce(ss, G_electroneum_vstate.c);
+    electroneum_reduce(xin,xin);
+    electroneum_multm(ss, ss, xin);
+
+    electroneum_reduce(alpha, alpha);
     electroneum_subm(ss2, alpha, ss);
 
     electroneum_io_insert(ss2,32);

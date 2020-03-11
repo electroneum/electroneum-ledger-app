@@ -1,3 +1,4 @@
+// Copyright (c) Electroneum Limited 2017-2020
 /* Copyright 2017 Cedric Mesnil <cslashm@gmail.com>, Ledger SAS
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,9 +25,14 @@
 
 
 extern electroneum_v_state_t  G_electroneum_vstate;
+
+#ifdef TARGET_NANOX
+extern const electroneum_nv_state_t N_state_pic;
+#define N_electroneum_pstate  ((volatile  electroneum_nv_state_t *)PIC(&N_state_pic))
+#else
 extern electroneum_nv_state_t N_state_pic;
 #define N_electroneum_pstate  ((WIDE  electroneum_nv_state_t *)PIC(&N_state_pic))
-
+#endif
 
 #ifdef electroneum_DEBUG_MAIN
 extern int apdu_n;

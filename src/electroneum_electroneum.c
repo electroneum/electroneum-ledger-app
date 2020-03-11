@@ -1,3 +1,4 @@
+// Copyright (c) Electroneum Limited 2017-2020
 /* Copyright 2017-2018 Cedric Mesnil <cslashm@gmail.com>, Ledger SAS
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,35 +18,38 @@
 #include "electroneum_api.h"
 #include "electroneum_vars.h"
 
+#ifndef ELECTRONEUM_ALPHA
 const unsigned char C_MAINNET_NETWORK_ID[] = {
-    0x12 ,0x30, 0xF1, 0x71 , 0x61, 0x04 , 0x41, 0x61, 0x17, 0x31, 0x00, 0x82, 0x16, 0xA1, 0xA1, 0x10
+        0x04, 0xF8, 0x23, 0xE1, 0x66, 0xC2, 0xE3, 0xA4, 0xEA, 0x5D, 0xD1, 0x2C, 0x85, 0x8E, 0xC8, 0x39
 };
+#endif
 const unsigned char C_TESTNET_NETWORK_ID[] =  {
-    0x12 ,0x30, 0xF1, 0x71 , 0x61, 0x04 , 0x41, 0x61, 0x17, 0x31, 0x00, 0x82, 0x16, 0xA1, 0xA1, 0x11
+        0x04, 0xF8, 0x23, 0xE1, 0x66, 0xC2, 0xE3, 0xA4, 0xEA, 0x5D, 0xD1, 0x2C, 0x85, 0x8E, 0xC8, 0x41
 };
+
 const unsigned char C_STAGENET_NETWORK_ID[] =  {
     0x12 ,0x30, 0xF1, 0x71 , 0x61, 0x04 , 0x41, 0x61, 0x17, 0x31, 0x00, 0x82, 0x16, 0xA1, 0xA1, 0x12
 };
 
 
-// Copyright (c) 2014-2017, The Monero Project
-// 
+// Copyright (c) 2014-2017, The Electroneum Project
+//
 // All rights reserved.
-// 
+//
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-// 
+//
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-// 
+//
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-// 
+//
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -75,7 +79,7 @@ static uint64_t uint_8be_to_64(const unsigned char* data, size_t size) {
     case 5: res <<= 8; res |= *data++;
     case 6: res <<= 8; res |= *data++;
     case 7: res <<= 8; res |= *data++;
-    case 8: res <<= 8; res |= *data; 
+    case 8: res <<= 8; res |= *data;
     break;
     }
 
@@ -93,34 +97,65 @@ static void encode_block(const unsigned char* block, unsigned int  size,  char* 
     }
 }
 
-int electroneum_base58_public_key(char* str_b58, unsigned char *view, unsigned char *spend, unsigned char is_subbadress) {
-    unsigned char data[72];
+int electroneum_base58_public_key(char* str_b58, unsigned char *view, unsigned char *spend, unsigned char is_subbadress, unsigned char *paymanetID) {
+    unsigned char data[72+8];
     unsigned int offset;
     unsigned int prefix;
 
     //data[0] = N_electroneum_pstate->network_id;
     switch(N_electroneum_pstate->network_id) {
         case TESTNET:
-            prefix = is_subbadress ? TESTNET_CRYPTONOTE_PUBLIC_SUBADDRESS_BASE58_PREFIX : TESTNET_CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX;
+            if (paymanetID) {
+                prefix = TESTNET_CRYPTONOTE_PUBLIC_INTEGRATED_ADDRESS_BASE58_PREFIX;
+            } else if (is_subbadress) {
+                prefix = TESTNET_CRYPTONOTE_PUBLIC_SUBADDRESS_BASE58_PREFIX;
+            } else {
+                prefix = TESTNET_CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX;
+            }
             break;
         case STAGENET:
-            prefix = is_subbadress ? STAGENET_CRYPTONOTE_PUBLIC_SUBADDRESS_BASE58_PREFIX : STAGENET_CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX;
+            if (paymanetID) {
+                prefix = STAGENET_CRYPTONOTE_PUBLIC_INTEGRATED_ADDRESS_BASE58_PREFIX;
+            } else if (is_subbadress) {
+                prefix = STAGENET_CRYPTONOTE_PUBLIC_SUBADDRESS_BASE58_PREFIX;
+            } else {
+                prefix = STAGENET_CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX;
+            }
             break;
+        #ifndef ELECTRONEUM_ALPHA
         case MAINNET:
-            prefix = is_subbadress ? MAINNET_CRYPTONOTE_PUBLIC_SUBADDRESS_BASE58_PREFIX : MAINNET_CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX;
+            if (paymanetID) {
+                prefix = MAINNET_CRYPTONOTE_PUBLIC_INTEGRATED_ADDRESS_BASE58_PREFIX;
+            } else if (is_subbadress) {
+                prefix = MAINNET_CRYPTONOTE_PUBLIC_SUBADDRESS_BASE58_PREFIX;
+            } else {
+                prefix = MAINNET_CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX;
+            }
             break;
+        #endif
     }
     offset = electroneum_encode_varint(data, prefix);
-    
+
     os_memmove(data+offset,spend,32);
     os_memmove(data+offset+32,view,32);
-    electroneum_keccak_F(data, offset+64, G_electroneum_vstate.H);
-    os_memmove(data+offset+32+32, G_electroneum_vstate.H, 4);
+    offset += 64;
+    if (paymanetID) {
+        os_memmove(data+offset, paymanetID, 8);
+        offset += 8;
+    }
+    electroneum_keccak_F(data, offset, G_electroneum_vstate.H);
+    os_memmove(data+offset, G_electroneum_vstate.H, 4);
+    offset += 4;
 
-    unsigned int full_block_count = (offset+32+32+4) / FULL_BLOCK_SIZE;
-    unsigned int last_block_size  = (offset+32+32+4) % FULL_BLOCK_SIZE;
+    unsigned int full_block_count = (offset) / FULL_BLOCK_SIZE;
+    unsigned int last_block_size  = (offset) % FULL_BLOCK_SIZE;
     for (size_t i = 0; i < full_block_count; ++i) {
         encode_block(data + i * FULL_BLOCK_SIZE, FULL_BLOCK_SIZE, &str_b58[i * FULL_ENCODED_BLOCK_SIZE]);
+        
+        // Hard fix to correctly display some addresses on device screen
+        if(str_b58[i * FULL_ENCODED_BLOCK_SIZE] == 0) {
+            str_b58[i * FULL_ENCODED_BLOCK_SIZE] = '1';
+        }
     }
 
     if (0 < last_block_size) {

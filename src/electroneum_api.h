@@ -1,3 +1,4 @@
+// Copyright (c) Electroneum Limited 2017-2020
 /* Copyright 2017 Cedric Mesnil <cslashm@gmail.com>, Ledger SAS
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,9 +14,10 @@
  * limitations under the License.
  */
 
-#ifndef electroneum_API_H
-#define  electroneum_API_H
+#ifndef ELECTRONEUM_API_H
+#define  ELECTRONEUM_API_H
 
+int electroneum_apdu_reset();
 
 void electroneum_install(unsigned char netId);
 void electroneum_init(void);
@@ -27,6 +29,7 @@ int electroneum_dispatch(void);
 
 int electroneum_apdu_put_key(void);
 int electroneum_apdu_get_key(void);
+int electroneum_apdu_display_address(void);
 int electroneum_apdu_manage_seedwords() ;
 int electroneum_apdu_verify_key(void);
 int electroneum_apdu_get_chacha8_prekey(void);
@@ -34,6 +37,9 @@ int electroneum_apdu_sc_add(void);
 int electroneum_apdu_sc_sub(void);
 int electroneum_apdu_scal_mul_key(void);
 int electroneum_apdu_scal_mul_base(void);
+int electroneum_apdu_hash_to_scalar(void);
+int electroneum_apdu_hash_to_scalar_batch(void);
+int electroneum_apdu_hash_to_scalar_init(void);
 int electroneum_apdu_generate_keypair(void);
 int electroneum_apdu_secret_key_to_public_key(void);
 int electroneum_apdu_generate_key_derivation(void);
@@ -61,18 +67,33 @@ int electroneum_apdu_mlsag_prehash_init(void);
 int electroneum_apdu_mlsag_prehash_update(void);
 int electroneum_apdu_mlsag_prehash_finalize(void);
 int electroneum_apu_generate_txout_keys(void);
+int electroneum_apdu_tx_prompt_fee(void);
+int electroneum_apdu_tx_prompt_amount(void);
+int electroneum_apdu_tx_prefix_start(void);
+int electroneum_apdu_tx_prefix_inputs(void);
+int electroneum_apdu_tx_prefix_outputs(void);
+int electroneum_apdu_tx_prefix_outputs_size(void);
+int electroneum_apdu_tx_prefix_extra(void);
 
 int electroneum_apdu_mlsag_prepare(void);
 int electroneum_apdu_mlsag_hash(void);
 int electroneum_apdu_mlsag_sign(void);
 int electroneum_apdu_close_tx(void);
 
+void ui_init(void);
+void ui_main_display(unsigned int value);
+void electroneum_ux_user_validation();
+void ui_export_viewkey_display(unsigned int value);
+void ui_menu_any_pubaddr_display(unsigned int value);
+void ui_menu_pubaddr_display(unsigned int value);
+
+
 /* ----------------------------------------------------------------------- */
 /* ---                               MISC                             ---- */
 /* ----------------------------------------------------------------------- */
 #define OFFSETOF(type, field)    ((unsigned int)&(((type*)NULL)->field))
 
-int electroneum_base58_public_key( char* str_b58, unsigned char *view, unsigned char *spend, unsigned char is_subbadress);
+int electroneum_base58_public_key( char* str_b58, unsigned char *view, unsigned char *spend, unsigned char is_subbadress, unsigned char *paymanetID);
 
 /** unsigned varint amount to uint64 */
 uint64_t electroneum_vamount2uint64(unsigned char *binary);
@@ -83,17 +104,24 @@ int electroneum_vamount2str(unsigned char *binary,  char *str, unsigned int str_
 /** binary little endian unsigned  int amount to str */
 int electroneum_bamount2str(unsigned char *binary,  char *str, unsigned int str_len);
 /** uint64  amount to str */
-int electroneum_amount2str(uint64_t xmr,  char *str, unsigned int str_len);
+int electroneum_amount2str(uint64_t etn,  char *str, unsigned int str_len);
 
 int electroneum_abort_tx() ;
 int electroneum_unblind(unsigned char *v, unsigned char *k, unsigned char *AKout, unsigned int short_amount);
 void ui_menu_validation_display(unsigned int value) ;
+void ui_menu_validation_loopback_display(unsigned int value) ;
 void ui_menu_fee_validation_display(unsigned int value) ;
 void ui_menu_change_validation_display(unsigned int value) ;
 
 /* ----------------------------------------------------------------------- */
 /* ---                          KEYS & ADDRESS                        ---- */
 /* ----------------------------------------------------------------------- */
+extern const unsigned char C_FAKE_SEC_VIEW_KEY[32];
+extern const unsigned char C_FAKE_SEC_SPEND_KEY[32];
+
+int is_fake_view_key(unsigned char *s);
+int is_fake_spend_key(unsigned char *s);
+
 void electroneum_sc_add(unsigned char *r, unsigned char *s1, unsigned char *s2);
 void electroneum_hash_to_scalar(unsigned char *scalar, unsigned char *raw, unsigned int len);
 void electroneum_hash_to_ec(unsigned char *ec, unsigned char *ec_pub);
@@ -141,7 +169,7 @@ extern const unsigned char C_ED25519_ORDER[];
 void electroneum_aes_derive(cx_aes_key_t *sk, unsigned char *seed32, unsigned char *a, unsigned char *b);
 void electroneum_aes_generate(cx_aes_key_t *sk);
 
-/* Compute electroneum-Hash of data*/
+/* Compute Electroneum-Hash of data*/
 void electroneum_hash_init_keccak(cx_hash_t * hasher);
 void electroneum_hash_init_sha256(cx_hash_t * hasher);
 void electroneum_hash_update(cx_hash_t * hasher, unsigned char* buf, unsigned int len) ;
@@ -184,8 +212,7 @@ int  electroneum_hash(unsigned int algo, cx_hash_t * hasher, unsigned char* buf,
 /**
  * LE-7-bits encoding. High bit set says one more byte to decode.
  */
-unsigned int electroneum_encode_varint(unsigned char varint[8], unsigned int out_idx);
-
+unsigned int electroneum_encode_varint(unsigned char* varint, uint64_t out_idx);
 /** */
 void electroneum_reverse32(unsigned char *rscal, unsigned char *scal);
 
@@ -255,7 +282,7 @@ void electroneum_multm_8(unsigned char *r, unsigned char *a);
 void electroneum_reduce(unsigned char *r, unsigned char *a);
 
 
-void electroneum_rng(unsigned char *r,  int len) ;
+void electroneum_rng_mod_order(unsigned char *r);
 /* ----------------------------------------------------------------------- */
 /* ---                                IO                              ---- */
 /* ----------------------------------------------------------------------- */
@@ -269,6 +296,7 @@ void electroneum_io_hole(unsigned int sz) ;
 void electroneum_io_inserted(unsigned int len);
 void electroneum_io_insert(unsigned char const * buffer, unsigned int len) ;
 void electroneum_io_insert_encrypt(unsigned char* buffer, int len);
+void electroneum_io_insert_hmac_for(unsigned char* buffer, int len);
 
 void electroneum_io_insert_u32(unsigned  int v32) ;
 void electroneum_io_insert_u24(unsigned  int v24) ;
@@ -279,6 +307,7 @@ void electroneum_io_insert_tl(unsigned int T, unsigned int L) ;
 void electroneum_io_insert_tlv(unsigned int T, unsigned int L, unsigned char const *V) ;
 
 void electroneum_io_fetch_buffer(unsigned char  * buffer, unsigned int len) ;
+uint64_t     electroneum_io_fetch_u64(void) ;
 unsigned int electroneum_io_fetch_u32(void) ;
 unsigned int electroneum_io_fetch_u24(void) ;
 unsigned int electroneum_io_fetch_u16(void) ;
@@ -295,7 +324,7 @@ int electroneum_io_do(unsigned int io_flags) ;
 /* ----------------------------------------------------------------------- */
 /* ---                                DEBUG                           ---- */
 /* ----------------------------------------------------------------------- */
-#ifdef electroneum_DEBUG
+#ifdef ELECTRONEUM_DEBUG
 
 #include "electroneum_debug.h"
 

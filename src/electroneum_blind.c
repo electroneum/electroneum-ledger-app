@@ -1,3 +1,4 @@
+// Copyright (c) Electroneum Limited 2017-2020
 /* Copyright 2017 Cedric Mesnil <cslashm@gmail.com>, Ledger SAS
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -106,6 +107,7 @@ int electroneum_apdu_gen_commitment_mask() {
     unsigned char AKout[32];
 
     electroneum_io_fetch_decrypt(AKout,32);
+
     electroneum_io_discard(1);
     electroneum_genCommitmentMask(k,AKout);
 

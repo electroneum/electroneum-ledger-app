@@ -1,4 +1,4 @@
-
+// Copyright (c) Electroneum Limited 2017-2020
 /* Copyright 2017 Cedric Mesnil <cslashm@gmail.com>, Ledger SAS
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,9 +18,5 @@
 #ifndef electroneum_UX_NANOS_H
 #define electroneum_UX_NANOS_H
 
-void ui_init(void);
-void ui_main_display(unsigned int value);
-void electroneum_ux_user_validation();
-void ui_export_viewkey_display(unsigned int value);
 
 #endif

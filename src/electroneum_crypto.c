@@ -1,3 +1,4 @@
+// Copyright (c) Electroneum Limited 2017-2020
 /* Copyright 2017 Cedric Mesnil <cslashm@gmail.com>, Ledger SAS
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -71,24 +72,65 @@ void electroneum_aes_derive(cx_aes_key_t *sk, unsigned char* seed32, unsigned ch
 
 void electroneum_aes_generate(cx_aes_key_t *sk) {
     unsigned char  h1[16];
-    electroneum_rng(h1,16);
+    cx_rng(h1,16);
     cx_aes_init_key(h1,16,sk);
 }
 
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-unsigned int electroneum_encode_varint(unsigned char varint[8], unsigned int out_idx) {
+unsigned int electroneum_encode_varint(uint8_t* varint, uint64_t out_idx) {
+
+    if (out_idx > UINT64_MAX / 2)
+        return 0;
+        
     unsigned int len;
     len = 0;
     while(out_idx >= 0x80) {
-        varint[len] = (out_idx & 0x7F) | 0x80;
+        varint[len] = ((uint8_t)(out_idx & 0x7F)) | 0x80;
         out_idx = out_idx>>7;
         len++;
     }
-    varint[len] = out_idx;
+    varint[len] = ((uint8_t)out_idx) & 0x7F;
     len++;
     return len;
+}
+
+size_t electroneum_encode_varint_portable_binary_archive(uint8_t buf[static 9], uint64_t num) {
+
+    if (num > UINT64_MAX / 2)
+        return 0;
+
+    size_t i = 0;
+
+    while (num >= 0x80) {
+        buf[i++] = (uint8_t)(num) | 0x80;
+        num >>= 7;
+    }
+
+    buf[i++] = (uint8_t)(num);
+
+    return i;
+}
+
+size_t electroneum_decode_varint_portable_binary_archive(const uint8_t buf[], size_t size_max, uint64_t *num) {
+    if (size_max == 0)
+        return 0;
+
+    if (size_max > 9)
+        size_max = 9;
+
+    *num = buf[0] & 0x7F;
+    size_t i = 0;
+
+    while (buf[i++] & 0x80) {
+        if (i >= size_max || buf[i] == 0x00)
+            return 0;
+
+        *num |= (uint64_t)(buf[i] & 0x7F) << (i * 7);
+    }
+
+    return i;
 }
 
 /* ----------------------------------------------------------------------- */
@@ -302,8 +344,8 @@ static void electroneum_ge_fromfe_frombytes(unsigned char *ge , unsigned char *b
 
     #define Pxy   uv._Pxy
 
-#if electroneum_IO_BUFFER_LENGTH < (9*32)
-#error  electroneum_IO_BUFFER_LENGTH is too small
+#if ELECTRONEUM_IO_BUFFER_LENGTH < (9*32)
+#error  ELECTRONEUM_IO_BUFFER_LENGTH is too small
 #endif
 #endif
 
@@ -374,7 +416,7 @@ static void electroneum_ge_fromfe_frombytes(unsigned char *ge , unsigned char *b
  setsign:
    if (fe_isnegative(rX) != sign) {
      //fe_neg(r->X, r->X);
-    cx_math_subm(rX, (unsigned char *)C_ED25519_FIELD, rX, MOD);
+    cx_math_sub(rX, (unsigned char *)C_ED25519_FIELD, rX, 32);
    }
    cx_math_addm(rZ, z, w, MOD);
    cx_math_subm(rY, z, w, MOD);
@@ -429,8 +471,7 @@ void electroneum_hash_to_ec(unsigned char *ec, unsigned char *ec_pub) {
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
 void electroneum_generate_keypair(unsigned char *ec_pub, unsigned char *ec_priv) {
-    electroneum_rng(ec_priv,32);
-    electroneum_reduce(ec_priv, ec_priv);
+    electroneum_rng_mod_order(ec_priv);
     electroneum_ecmul_G(ec_pub, ec_priv);
 }
 
@@ -670,7 +711,7 @@ void electroneum_ecsub(unsigned char *W, unsigned char *P, unsigned char *Q) {
     os_memmove(&Qxy[1], Q, 32);
     cx_edward_decompress_point(CX_CURVE_Ed25519, Qxy, sizeof(Qxy));
 
-    cx_math_subm(Qxy+1, (unsigned char *)C_ED25519_FIELD,  Qxy+1, (unsigned char *)C_ED25519_FIELD, 32);
+    cx_math_sub(Qxy+1, (unsigned char *)C_ED25519_FIELD,  Qxy+1, 32);
     cx_ecfp_add_point(CX_CURVE_Ed25519, Pxy, Pxy, Qxy, sizeof(Pxy));
 
     cx_edward_compress_point(CX_CURVE_Ed25519, Pxy, sizeof(Pxy));
@@ -784,16 +825,18 @@ void electroneum_reduce(unsigned char *r, unsigned char *a) {
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
-
-void electroneum_rng(unsigned char *r,  int len) {
-    cx_rng(r,len);
+void electroneum_rng_mod_order(unsigned char *r) {
+    unsigned char rnd[32+8];
+    cx_rng(rnd,32+8);
+    cx_math_modm(rnd, 32+8, (unsigned char *)C_ED25519_ORDER, 32);
+    electroneum_reverse32(r,rnd+8);
 }
 
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
 /* return 0 if ok, 1 if missing decimal */
-int electroneum_amount2str(uint64_t xmr,  char *str, unsigned int str_len) {
+int electroneum_amount2str(uint64_t ETN,  char *str, unsigned int str_len) {
     //max uint64 is 18446744073709551616, aka 20 char, plus dot
     char stramount[22];
     unsigned int offset,len,ov;
@@ -803,7 +846,7 @@ int electroneum_amount2str(uint64_t xmr,  char *str, unsigned int str_len) {
     os_memset(stramount,'0',sizeof(stramount));
     stramount[21] = 0;
     //special case
-    if (xmr == 0) {
+    if (ETN == 0) {
         str[0] = '0';
         return 1;
     }
@@ -811,19 +854,19 @@ int electroneum_amount2str(uint64_t xmr,  char *str, unsigned int str_len) {
     //uint64 units to str
     // offset: 0 | 1-20     | 21
     // ----------------------
-    // value:  0 | xmrunits | 0
+    // value:  0 | ETNunits | 0
 
     offset = 20;
-    while (xmr) {
-        stramount[offset] = '0' + xmr % 10;
-        xmr = xmr / 10;
+    while (ETN) {
+        stramount[offset] = '0' + ETN % 10;
+        ETN = ETN / 10;
         offset--;
     }
-    // offset: 0-7 | 8 | 9-20 |21
+    // offset: 0-17 | 18 | 19-20 |21
     // ----------------------
-    // value:  xmr | . | units| 0
-    os_memmove(stramount, stramount+1, 8);
-    stramount[8] = '.';
+    // value:  ETN  |  . | units| 0
+    os_memmove(stramount, stramount+1, 18);
+    stramount[18] = '.';
     offset = 0;
     while((stramount[offset]=='0') && (stramount[offset] != '.')) {
         offset++;
@@ -833,6 +876,9 @@ int electroneum_amount2str(uint64_t xmr,  char *str, unsigned int str_len) {
     }
     len = 20;
     while((stramount[len]=='0') && (stramount[len] != '.')) {
+        len--;
+    }
+    if(stramount[len] == '.') {
         len--;
     }
     len = len-offset+1;
@@ -849,13 +895,13 @@ int electroneum_amount2str(uint64_t xmr,  char *str, unsigned int str_len) {
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
 uint64_t electroneum_bamount2uint64(unsigned char *binary) {
-    uint64_t xmr;
+    uint64_t ETN;
     int i;
-    xmr = 0;
+    ETN = 0;
     for (i=7; i>=0; i--) {
-        xmr = xmr*256 + binary[i];
+        ETN = ETN*256 + binary[i];
     }
-    return xmr;
+    return ETN;
 }
 
 /* ----------------------------------------------------------------------- */
@@ -869,21 +915,37 @@ int electroneum_bamount2str(unsigned char *binary,  char *str, unsigned int str_
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
 uint64_t electroneum_vamount2uint64(unsigned char *binary) {
-    uint64_t xmr,x;
+   uint64_t ETN,x;
    int shift = 0;
-   xmr = 0;
+   ETN = 0;
    while((*binary)&0x80) {
        if ( (unsigned int)shift > (8*sizeof(unsigned long long int)-7)) {
         return 0;
        }
        x = *(binary)&0x7f;
-       xmr = xmr + (x<<shift);
+       ETN = ETN + (x<<shift);
        binary++;
        shift += 7;
    }
    x = *(binary)&0x7f;
-   xmr = xmr + (x<<shift);
-   return xmr;
+   ETN = ETN + (x<<shift);
+   return ETN;
+}
+
+/* ----------------------------------------------------------------------- */
+/* ---                                                                 --- */
+/* ----------------------------------------------------------------------- */
+uint8_t* electroneum_uint642vamount(unsigned int num) {
+    uint8_t buf[9] = {0,0,0,0,0,0,0,0,0};
+    size_t i = 0;
+
+    while (num >= 0x80) {
+        buf[i++] = (uint8_t)(num) | 0x80;
+        num >>= 7;
+    }
+
+    buf[i++] = (uint8_t)(num);
+    return buf;
 }
 
 /* ----------------------------------------------------------------------- */

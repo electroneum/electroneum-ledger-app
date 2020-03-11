@@ -1,3 +1,15 @@
+1	Copyright (c) Electroneum Limited 2017-2020 and licenced under the following terms:
+1.1	Subject to the terms and conditions set out below we grant to you free of charge a worldwide, non-exclusive, royalty-free, licence to use, modify, redistribute, prepare derivative works of, display, sublicense and/or distribute the code in the Electroneum Project which has been created by us or our contributors (“Code”).
+1.2	Redistribution of the Code (whether in source or object form) must retain the terms of this licence in full and must prominently display the terms of this licence.
+1.3	You must not:
+1.3.1	use Electroneum Limited’s (or any group company’s) name, brand, logo or trade marks to endorse or promote any works derived from Code without the prior written permission of Electroneum Limited; or
+1.3.2	use the Code in any way which may directly or indirectly harm or interfere with the functioning of Electroneum Limited’s blockchain, the exchange token operating on that blockchain (known as ETN) or any other product or service made available by Electroneum Limited (or any group company) from time to time.
+1.4	The Code is provided to you on an “as is” basis. All express and implied warranties, including but not limited to warranties as to non-infringement, fitness for any particular purpose, quality or merchantability, are excluded to the fullest extent permissible by law. You are responsible for, and assume any risk associated with, the use and distribution of the Code.
+1.5	Electroneum Limited (and its group companies) shall not be liable to any person for any claims, losses or damages which may be suffered, whether the same are suffered directly or indirectly, whether immediate or consequential, and whether the same arise in contract, tort (including negligence) or otherwise, including (without limitation) loss of goodwill, loss of profits, loss of anticipated savings, loss of business opportunities, loss or corruption of data and computer failure or malfunction.
+1.6	In your redistribution of the Code you shall not provide to any person any representation, warranty or condition not contained in the terms of this licence. You agree to indemnify us against all claims, losses or damages which we may incur by reason of your breach of this clause.
+2	Parts of this project are originally copyright (c) CslashM of Ledger and distributed under the following licence terms:
+2.1	All rights reserved.
+
                                  Apache License
                            Version 2.0, January 2004
                         http://www.apache.org/licenses/

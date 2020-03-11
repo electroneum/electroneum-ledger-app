@@ -1,3 +1,4 @@
+// Copyright (c) Electroneum Limited 2017-2020
 /* Copyright 2017 Cedric Mesnil <cslashm@gmail.com>, Ledger SAS
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,12 +22,19 @@
 
 #include "os_io_seproxyhal.h"
 
-#ifndef electroneum_DEBUG_MAIN
 unsigned char G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
-ux_state_t ux;
+
+#ifdef TARGET_NANOX
+/* --- NANO-X config --- */
+
+#include "ux.h"
+ux_state_t G_ux;
+bolos_ux_params_t G_ux_params;
+
 #else
-extern unsigned char G_io_seproxyhal_spi_buffer[IO_SEPROXYHAL_BUFFER_SIZE_B];
-int apdu_n;
+/* --- NANO-X config --- */
+
+ux_state_t ux;
 
 #endif
 

@@ -1,3 +1,4 @@
+// Copyright (c) Electroneum Limited 2017-2020
 /* Copyright 2017 Cedric Mesnil <cslashm@gmail.com>, Ledger SAS
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -52,6 +53,7 @@ void check_ins_access() {
   case INS_RESET:
   case INS_PUT_KEY:
   case INS_GET_KEY:
+  case INS_DISPLAY_ADDRESS:
   case INS_VERIFY_KEY:
   case INS_GET_CHACHA8_PREKEY:
   case INS_GEN_KEY_DERIVATION:
@@ -61,6 +63,7 @@ void check_ins_access() {
   case INS_GEN_KEY_IMAGE:
   case INS_SECRET_KEY_TO_PUBLIC_KEY:
   case INS_SECRET_KEY_ADD:
+  case INS_SCALAR_MULSUB:
   case INS_SECRET_KEY_SUB:
   case INS_GENERATE_KEYPAIR:
   case INS_SECRET_SCAL_MUL_KEY:
@@ -73,6 +76,7 @@ void check_ins_access() {
   case INS_UNBLIND:
   case INS_STEALTH:
   case INS_GET_TX_PROOF:
+  case INS_CLOSE_TX:
     return;
 
   case INS_OPEN_TX:
@@ -82,12 +86,23 @@ void check_ins_access() {
     }
     return;
 
-  case INS_CLOSE_TX:
   case INS_GEN_TXOUT_KEYS:
   case INS_BLIND:
   case INS_VALIDATE:
   case INS_MLSAG:
   case INS_GEN_COMMITMENT_MASK:
+  case INS_PROMPT_FEE:
+  case INS_PROMPT_TX:
+  case INS_TX_PREFIX_START:
+  case INS_TX_PREFIX_INPUTS:
+  case INS_TX_PREFIX_OUTPUTS:
+  case INS_TX_PREFIX_OUTPUTS_SIZE:
+  case INS_TX_PREFIX_EXTRA:
+  case INS_TX_PROMPT_FEE:
+  case INS_TX_PROMPT_AMOUNT:
+  case INS_HASH_TO_SCALAR:
+  case INS_HASH_TO_SCALAR_BATCH:
+  case INS_HASH_TO_SCALAR_INIT:
     if ((os_global_pin_is_validated() != PIN_VERIFIED) ||
         (G_electroneum_vstate.tx_in_progress != 1)) {
       break;
@@ -141,13 +156,15 @@ int electroneum_dispatch() {
     sw = electroneum_apdu_stealth();
     break;
 
-
    /* --- KEYS --- */
   case INS_PUT_KEY:
     sw = electroneum_apdu_put_key();
     break;
   case INS_GET_KEY:
     sw = electroneum_apdu_get_key();
+    break;
+  case INS_DISPLAY_ADDRESS:
+    sw = electroneum_apdu_display_address();
     break;
   case INS_MANAGE_SEEDWORDS:
     sw = electroneum_apdu_manage_seedwords();
@@ -181,6 +198,9 @@ int electroneum_dispatch() {
   case INS_SECRET_KEY_ADD:
     sw = electroneum_apdu_sc_add();
     break;
+  case INS_SCALAR_MULSUB:
+    sw = electroneum_apdu_scalar_mulsub();
+    break;
   case INS_SECRET_KEY_SUB:
     sw = electroneum_apdu_sc_sub();
     break;
@@ -192,6 +212,15 @@ int electroneum_dispatch() {
     break;
   case INS_SECRET_SCAL_MUL_BASE:
     sw = electroneum_apdu_scal_mul_base();
+    break;
+  case INS_HASH_TO_SCALAR:
+    sw = electroneum_apdu_hash_to_scalar();
+    break;
+  case INS_HASH_TO_SCALAR_BATCH:
+    sw = electroneum_apdu_hash_to_scalar_batch();
+    break;
+  case INS_HASH_TO_SCALAR_INIT:
+    sw = electroneum_apdu_hash_to_scalar_init();
     break;
 
   /* --- ADRESSES --- */
@@ -245,6 +274,28 @@ int electroneum_dispatch() {
     }
     break;
 
+  case INS_TX_PREFIX_START:
+    sw = electroneum_apdu_tx_prefix_start();
+    break;
+  case INS_TX_PREFIX_INPUTS:
+    sw = electroneum_apdu_tx_prefix_inputs();
+    break;
+  case INS_TX_PREFIX_OUTPUTS:
+    sw = electroneum_apdu_tx_prefix_outputs();
+    break;
+  case INS_TX_PREFIX_OUTPUTS_SIZE:
+    sw = electroneum_apdu_tx_prefix_outputs_size();
+    break;
+  case INS_TX_PREFIX_EXTRA:
+    sw = electroneum_apdu_tx_prefix_extra();
+    break;
+  case INS_TX_PROMPT_FEE:
+    sw = electroneum_apdu_tx_prompt_fee();
+    break;
+  case INS_TX_PROMPT_AMOUNT:
+    sw = electroneum_apdu_tx_prompt_amount();
+    break;
+
   /* --- MLSAG --- */
   case INS_MLSAG:
     if (G_electroneum_vstate.io_p1 == 1) {
@@ -262,7 +313,6 @@ int electroneum_dispatch() {
 
   default:
     THROW(SW_INS_NOT_SUPPORTED);
-    return SW_INS_NOT_SUPPORTED;
     break;
   }
   return sw;

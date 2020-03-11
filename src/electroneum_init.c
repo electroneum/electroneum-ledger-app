@@ -1,3 +1,4 @@
+// Copyright (c) Electroneum Limited 2017-2020
 /* Copyright 2017 Cedric Mesnil <cslashm@gmail.com>, Ledger SAS
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,18 +28,32 @@ const unsigned char C_MAGIC[8] = {
  'M','O','N','E','R','O','H','W'
 };
 
+const unsigned char C_FAKE_SEC_VIEW_KEY[32] = {
+  0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+  0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
+};
+const unsigned char C_FAKE_SEC_SPEND_KEY[32] = {
+  0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,
+  0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF
+};
+
 /* ----------------------------------------------------------------------- */
 /* --- Boot                                                            --- */
 /* ----------------------------------------------------------------------- */
 void electroneum_init() {
   os_memset(&G_electroneum_vstate, 0, sizeof(electroneum_v_state_t));
-
   //first init ?
-  if (os_memcmp(N_electroneum_pstate->magic, (void*)C_MAGIC, sizeof(C_MAGIC)) != 0) {
+  if (os_memcmp((void*)N_electroneum_pstate->magic, (void*)C_MAGIC, sizeof(C_MAGIC)) != 0) {
+    #ifdef ELECTRONEUM_ALPHA
+    electroneum_install(STAGENET);
+    #else
     electroneum_install(MAINNET);
+    #endif
   }
 
   G_electroneum_vstate.protocol = 0xff;
+
+  os_memset(G_electroneum_vstate.tx_change_idx, 0, 50);
 
   //load key
   electroneum_init_private_key();
@@ -69,9 +84,9 @@ void electroneum_init_private_key() {
   //generate account keys
 
   // m / purpose' / coin_type' / account' / change / address_index
-  // m / 44'      / 128'       / 0'       / 0      / 0
+  // m / 44'      / 415'       / 0'       / 0      / 0
   path[0] = 0x8000002C;
-  path[1] = 0x80000080;
+  path[1] = 0x8000019F;
   path[2] = 0x80000000;
   path[3] = 0x00000000;
   path[4] = 0x00000000;
@@ -87,8 +102,8 @@ void electroneum_init_private_key() {
     break;
 
   case KEY_MODE_EXTERNAL:
-    os_memmove(G_electroneum_vstate.a,  N_electroneum_pstate->a, 32);
-    os_memmove(G_electroneum_vstate.b,  N_electroneum_pstate->b, 32);
+    os_memmove(G_electroneum_vstate.a,  (void*)N_electroneum_pstate->a, 32);
+    os_memmove(G_electroneum_vstate.b,  (void*)N_electroneum_pstate->b, 32);
     break;
 
   default :
@@ -110,62 +125,69 @@ void electroneum_init_private_key() {
 /* ---  Set up ui/ux                                                   --- */
 /* ----------------------------------------------------------------------- */
 void electroneum_init_ux() {
+  #ifdef UI_NANO_X
+  electroneum_base58_public_key(G_electroneum_vstate.ux_wallet_public_address, G_electroneum_vstate.A,G_electroneum_vstate.B, 0, NULL);
+  os_memset(G_electroneum_vstate.ux_wallet_public_short_address, '.', sizeof(G_electroneum_vstate.ux_wallet_public_short_address));
+  os_memmove(G_electroneum_vstate.ux_wallet_public_short_address, G_electroneum_vstate.ux_wallet_public_address,5);
+  os_memmove(G_electroneum_vstate.ux_wallet_public_short_address+7, G_electroneum_vstate.ux_wallet_public_address+98-5,5);
+  G_electroneum_vstate.ux_wallet_public_short_address[12] = 0;
+  #endif
 }
 
 /* ----------------------------------------------------------------------- */
-/* ---  Install/ReInstall electroneum app                                   --- */
+/* ---  Install/ReInstall Electroneum app                                   --- */
 /* ----------------------------------------------------------------------- */
 void electroneum_install(unsigned char netId) {
   unsigned char c;
 
   //full reset data
-  electroneum_nvm_write(N_electroneum_pstate, NULL, sizeof(electroneum_nv_state_t));
+  electroneum_nvm_write((void*)N_electroneum_pstate, NULL, sizeof(electroneum_nv_state_t));
 
   //set mode key
   c = KEY_MODE_SEED;
-  nvm_write(&N_electroneum_pstate->key_mode, &c, 1);
+  nvm_write((void*)&N_electroneum_pstate->key_mode, &c, 1);
 
   //set net id
-  electroneum_nvm_write(&N_electroneum_pstate->network_id, &netId, 1);
+  electroneum_nvm_write((void*)&N_electroneum_pstate->network_id, &netId, 1);
 
   //write magic
-  electroneum_nvm_write(N_electroneum_pstate->magic, (void*)C_MAGIC, sizeof(C_MAGIC));
+  electroneum_nvm_write((void*)N_electroneum_pstate->magic, (void*)C_MAGIC, sizeof(C_MAGIC));
 }
 
 /* ----------------------------------------------------------------------- */
 /* --- Reset                                                           --- */
 /* ----------------------------------------------------------------------- */
-#define electroneum_SUPPORTED_CLIENT_SIZE 1
-const char * const electroneum_supported_client[electroneum_SUPPORTED_CLIENT_SIZE] = {
-  "0.14.1.0",
+#define ELECTRONEUM_SUPPORTED_CLIENT_SIZE 1
+const char * const electroneum_supported_client[ELECTRONEUM_SUPPORTED_CLIENT_SIZE] = {
+  "3.2.0.0"
 };
 
 int electroneum_apdu_reset() {
 
   unsigned int client_version_len;
-  char client_version[10];
+  char client_version[16];
   client_version_len = G_electroneum_vstate.io_length - G_electroneum_vstate.io_offset;
-  if (client_version_len > 10) {
+  if (client_version_len > 15) {
     THROW(SW_CLIENT_NOT_SUPPORTED+1);
   }
   electroneum_io_fetch((unsigned char*)&client_version[0], client_version_len);
-
+  client_version[client_version_len] = 0;
   unsigned int i = 0;
-  while(i < electroneum_SUPPORTED_CLIENT_SIZE) {
+  while(i < ELECTRONEUM_SUPPORTED_CLIENT_SIZE) {
     if ((strlen((char*)PIC(electroneum_supported_client[i])) == client_version_len) &&
         (os_memcmp((char*)PIC(electroneum_supported_client[i]), client_version, client_version_len)==0) ) {
       break;
     }
     i++;
   }
-  if (i == electroneum_SUPPORTED_CLIENT_SIZE) {
+  if (i == ELECTRONEUM_SUPPORTED_CLIENT_SIZE) {
     THROW(SW_CLIENT_NOT_SUPPORTED);
   }
 
   electroneum_io_discard(0);
   electroneum_init();
-  electroneum_io_insert_u8(electroneum_VERSION_MAJOR);
-  electroneum_io_insert_u8(electroneum_VERSION_MINOR);
-  electroneum_io_insert_u8(electroneum_VERSION_MICRO);
+  electroneum_io_insert_u8(ELECTRONEUM_VERSION_MAJOR);
+  electroneum_io_insert_u8(ELECTRONEUM_VERSION_MINOR);
+  electroneum_io_insert_u8(ELECTRONEUM_VERSION_MICRO);
   return 0x9000;
 }

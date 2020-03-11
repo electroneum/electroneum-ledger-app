@@ -1,3 +1,4 @@
+// Copyright (c) Electroneum Limited 2017-2020
 /* Copyright 2017 Cedric Mesnil <cslashm@gmail.com>, Ledger SAS
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,6 +19,8 @@
 #include "electroneum_types.h"
 #include "electroneum_api.h"
 #include "electroneum_vars.h"
+
+
 
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
@@ -81,7 +84,7 @@ static unsigned long electroneum_crc32( unsigned long inCrc32, const void *buf,
 
 void electroneum_clear_words() {
   for (int i = 0; i<25; i++) {
-    electroneum_nvm_write(N_electroneum_pstate->words[i], NULL,WORDS_MAX_LENGTH);
+    electroneum_nvm_write((void*)N_electroneum_pstate->words[i], NULL,WORDS_MAX_LENGTH);
   }
 }
 /**
@@ -110,7 +113,7 @@ static void  electroneum_set_word(unsigned int n, unsigned int idx, unsigned int
   }
   len = word_list[0];
   word_list++;
-  electroneum_nvm_write(N_electroneum_pstate->words[n], word_list, len);
+  electroneum_nvm_write((void*)N_electroneum_pstate->words[n], word_list, len);
 }
 
 #define word_list_length 1626
@@ -136,7 +139,7 @@ int electroneum_apdu_manage_seedwords() {
 
       for (int wi = 0; wi < 3; wi++) {
         if ((wc[wi] >= w_start) && (wc[wi] < w_end)) {
-          electroneum_set_word(i*3+wi, wc[wi], w_start, G_electroneum_vstate.io_buffer+G_electroneum_vstate.io_offset, electroneum_IO_BUFFER_LENGTH-G_electroneum_vstate.io_offset);
+          electroneum_set_word(i*3+wi, wc[wi], w_start, G_electroneum_vstate.io_buffer+G_electroneum_vstate.io_offset, ELECTRONEUM_IO_BUFFER_LENGTH-G_electroneum_vstate.io_offset);
         }
       }
     }
@@ -149,7 +152,7 @@ int electroneum_apdu_manage_seedwords() {
         }
       }
       w_start = electroneum_crc32(0, G_electroneum_vstate.io_buffer, G_electroneum_vstate.io_p2*24)%24;
-      electroneum_nvm_write(N_electroneum_pstate->words[24], N_electroneum_pstate->words[w_start], WORDS_MAX_LENGTH);
+      electroneum_nvm_write((void*)N_electroneum_pstate->words[24], (void*)N_electroneum_pstate->words[w_start], WORDS_MAX_LENGTH);
     }
 
     break;
@@ -169,6 +172,81 @@ int electroneum_apdu_manage_seedwords() {
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
+static void electroneum_payment_id_to_str(const unsigned char *payment_id, char* str) {
+  for (int i = 0; i<8; i++) {
+    if (payment_id[i] <= 0xF) {
+      snprintf(str+i*2,3, "0%x",payment_id[i]);
+    } else {
+      snprintf(str+i*2,3, "%x",payment_id[i]);
+    }
+  }
+}
+
+int  electroneum_apdu_display_address() {
+  unsigned int  major;
+  unsigned int  minor;
+  unsigned char index[8];
+  unsigned char payment_id[8];
+  unsigned char C[32];
+  unsigned char D[32];
+
+  //fetch
+  electroneum_io_fetch(index, 8);
+  electroneum_io_fetch(payment_id, 8);
+  electroneum_io_discard(0);
+
+  major = (index[0]<<0)|(index[1]<<8)|(index[2]<<16)|(index[3]<<24);
+  minor = (index[4]<<0)|(index[5]<<8)|(index[6]<<16)|(index[7]<<24);
+  if ((minor|major) && (G_electroneum_vstate.io_p1 == 1)) {
+    THROW(SW_WRONG_DATA);
+  }
+
+  //retrieve pub keys
+  if (minor|major) {
+    electroneum_get_subaddress(C, D, index);
+  } else {
+    os_memmove(C, G_electroneum_vstate.A, 32);
+    os_memmove(D, G_electroneum_vstate.B, 32);
+  }
+
+  //prepare UI
+  if (minor|major) {
+    G_electroneum_vstate.disp_addr_M = major;
+    G_electroneum_vstate.disp_addr_m = minor;
+    G_electroneum_vstate.disp_addr_mode = DISP_SUB;
+  } else {
+    if (G_electroneum_vstate.io_p1 == 1) {
+      electroneum_payment_id_to_str(payment_id, G_electroneum_vstate.payment_id);
+      G_electroneum_vstate.disp_addr_mode = DISP_INTEGRATED;
+    } else {
+      G_electroneum_vstate.disp_addr_mode = DISP_MAIN;
+    }
+  }
+  electroneum_base58_public_key(G_electroneum_vstate.ux_address,
+                           C, D,
+                           (minor|major)?1:0,
+                           (G_electroneum_vstate.io_p1 == 1)? payment_id : NULL);
+
+
+
+  ui_menu_any_pubaddr_display(0);
+  return 0;
+}
+
+/* ----------------------------------------------------------------------- */
+/* ---                                                                 --- */
+/* ----------------------------------------------------------------------- */
+int is_fake_view_key(unsigned char *s) {
+  return os_memcmp(s,C_FAKE_SEC_VIEW_KEY, 32) == 0;
+}
+
+int is_fake_spend_key(unsigned char *s) {
+    return os_memcmp(s,C_FAKE_SEC_SPEND_KEY, 32) == 0;
+}
+
+/* ----------------------------------------------------------------------- */
+/* ---                                                                 --- */
+/* ----------------------------------------------------------------------- */
 int electroneum_apdu_put_key() {
 
 
@@ -176,7 +254,7 @@ int electroneum_apdu_put_key() {
   unsigned char pub[32];
   unsigned char sec[32];
 
-  if (G_electroneum_vstate.io_length != (32*2 + 32*2 + 95)) {
+  if (G_electroneum_vstate.io_length != (32*2 + 32*2 + 98)) {
     THROW(SW_WRONG_LENGTH);
     return SW_WRONG_LENGTH;
   }
@@ -189,7 +267,7 @@ int electroneum_apdu_put_key() {
     THROW(SW_WRONG_DATA);
     return SW_WRONG_DATA;
   }
-  nvm_write(N_electroneum_pstate->a, sec, 32);
+  nvm_write((void*)N_electroneum_pstate->a, sec, 32);
 
   //spend key
   electroneum_io_fetch(sec, 32);
@@ -199,12 +277,12 @@ int electroneum_apdu_put_key() {
     THROW(SW_WRONG_DATA);
     return SW_WRONG_DATA;
   }
-  nvm_write(N_electroneum_pstate->b, sec, 32);
+  nvm_write((void*)N_electroneum_pstate->b, sec, 32);
 
 
   //change mode
   unsigned char key_mode = KEY_MODE_EXTERNAL;
-  nvm_write(&N_electroneum_pstate->key_mode, &key_mode, 1);
+  nvm_write((void*)&N_electroneum_pstate->key_mode, &key_mode, 1);
 
   electroneum_io_discard(1);
 
@@ -226,15 +304,20 @@ int electroneum_apdu_get_key() {
     //spend key
     electroneum_io_insert(G_electroneum_vstate.B, 32);
     //public base address
-    electroneum_base58_public_key((char*)G_electroneum_vstate.io_buffer+G_electroneum_vstate.io_offset, G_electroneum_vstate.A, G_electroneum_vstate.B, 0);
-    electroneum_io_inserted(95);
+    electroneum_base58_public_key((char*)G_electroneum_vstate.io_buffer+G_electroneum_vstate.io_offset, G_electroneum_vstate.A, G_electroneum_vstate.B, 0, NULL);
+    electroneum_io_inserted(98);
     break;
 
   //get private
   case 2:
     //view key
-    ui_export_viewkey_display();
-    return 0;
+    if (G_electroneum_vstate.export_view_key == EXPORT_VIEW_KEY) {
+      electroneum_io_insert(G_electroneum_vstate.a, 32);
+    } else {
+      ui_export_viewkey_display(0);
+      return 0;
+    }
+    break;
 
   #if DEBUG_HWDEVICE
   //get info
@@ -242,9 +325,9 @@ int electroneum_apdu_get_key() {
     unsigned int  path[5];
     unsigned char seed[32];
 
-    // m/44'/128'/0'/0/0
+    // m/44'/415'/0'/0/0
     path[0] = 0x8000002C;
-    path[1] = 0x80000080;
+    path[1] = 0x8000019F;
     path[2] = 0x80000000;
     path[3] = 0x00000000;
     path[4] = 0x00000000;
@@ -257,6 +340,12 @@ int electroneum_apdu_get_key() {
 
     break;
     }
+
+      //get info
+  case 4 :
+    electroneum_io_insert(G_electroneum_vstate.a, 32);
+    electroneum_io_insert(G_electroneum_vstate.b, 32);
+    break;
     #endif
 
   default:
@@ -282,10 +371,10 @@ int electroneum_apdu_verify_key() {
     electroneum_secret_key_to_public_key(computed_pub, priv);
     break;
   case 1:
-    os_memmove(pub, G_electroneum_vstate.A, 32);
+    os_memmove(computed_pub, G_electroneum_vstate.A, 32);
     break;
   case 2:
-    os_memmove(pub, G_electroneum_vstate.B, 32);
+    os_memmove(computed_pub, G_electroneum_vstate.B, 32);
     break;
   default:
     THROW(SW_WRONG_P1P2);
@@ -339,6 +428,32 @@ int electroneum_apdu_sc_add(/*unsigned char *r, unsigned char *s1, unsigned char
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
+int electroneum_apdu_scalar_mulsub(/*unsigned char *c, unsigned char *x, unsigned char *q*/) {
+    unsigned char c[32];
+    unsigned char x[32];
+    unsigned char q[32];
+    unsigned char cx[32];
+    unsigned char r[32];
+
+    //fetch : only q,x are encrypted
+    electroneum_io_fetch(c,32);
+    electroneum_io_fetch_decrypt(x,32);
+    electroneum_io_fetch_decrypt(q,32);
+    electroneum_io_discard(0);
+
+    //Compute (q-cx) mod l === (q mod l - cx mod l) modl
+    /* r = (c*x) %l */
+    electroneum_multm(cx, c, x);
+    /* r = (q-cx) %l */
+    electroneum_subm(r, q, cx);
+
+    electroneum_io_insert(r,32);
+    return SW_OK;
+}
+
+/* ----------------------------------------------------------------------- */
+/* ---                                                                 --- */
+/* ----------------------------------------------------------------------- */
 int electroneum_apdu_sc_sub(/*unsigned char *r, unsigned char *s1, unsigned char *s2*/) {
   unsigned char s1[32];
   unsigned char s2[32];
@@ -382,6 +497,50 @@ int electroneum_apdu_scal_mul_base(/*const rct::key &sec, rct::key mulkey*/) {
 
   electroneum_ecmul_G(r,sec);
   electroneum_io_insert(r, 32);
+  return SW_OK;
+}
+
+/* ----------------------------------------------------------------------- */
+/* ---                                                                 --- */
+/* ----------------------------------------------------------------------- */
+int electroneum_apdu_hash_to_scalar_init() {
+
+
+  electroneum_keccak_init_H();
+  electroneum_keccak_update_H(G_electroneum_vstate.tx_prefix_hash, 32);
+
+  electroneum_io_discard(0);
+  return SW_OK;
+}
+
+/* ----------------------------------------------------------------------- */
+/* ---                                                                 --- */
+/* ----------------------------------------------------------------------- */
+int electroneum_apdu_hash_to_scalar() {
+  unsigned char h[32];
+  electroneum_io_discard(0);
+
+  electroneum_keccak_final_H(h);
+  electroneum_reduce(h, h);
+
+  electroneum_io_insert(h, 32);
+  return SW_OK;
+}
+
+/* ----------------------------------------------------------------------- */
+/* ---                                                                 --- */
+/* ----------------------------------------------------------------------- */
+int electroneum_apdu_hash_to_scalar_batch(/*const ec_point a, ec_point b*/) {
+  unsigned char a[32];
+  unsigned char b[32];
+  //fetch
+  electroneum_io_fetch(a,32);
+  electroneum_io_fetch(b,32);
+  electroneum_io_discard(0);
+
+  electroneum_keccak_update_H(a,32);
+  electroneum_keccak_update_H(b,32);
+  
   return SW_OK;
 }
 
@@ -460,10 +619,11 @@ int electroneum_apdu_derivation_to_scalar(/*const crypto::key_derivation &deriva
 /* ----------------------------------------------------------------------- */
 /* ---                                                                 --- */
 /* ----------------------------------------------------------------------- */
+// This is for a stealth address public key
 int electroneum_apdu_derive_public_key(/*const crypto::key_derivation &derivation, const std::size_t output_index, const crypto::public_key &pub, public_key &derived_pub*/) {
-  unsigned char derivation[32];
-  unsigned int  output_index;
-  unsigned char pub[32];
+  unsigned char derivation[32]; //r*A
+  unsigned int  output_index; //index of output used for hashing (H) (so all stealth addresses aren't the same (=H(rA)G+B)
+  unsigned char pub[32]; //B
   unsigned char drvpub[32];
 
   //fetch
@@ -672,12 +832,23 @@ int electroneum_apu_generate_txout_keys(/*size_t tx_version, crypto::secret_key 
   //derivation
   if (is_change) {
     electroneum_generate_key_derivation(derivation, txkey_pub, G_electroneum_vstate.a);
+
+    //set tx_change_idx bit-by-bit
+    unsigned int memblock = output_index / 8;
+    uint8_t shift = output_index == 0 ? 0 : (output_index - 8*memblock) % 8;
+    G_electroneum_vstate.tx_change_idx[memblock] = G_electroneum_vstate.tx_change_idx[memblock] | (1 << shift);
   } else {
+    memcpy(G_electroneum_vstate.dest_Aout, Aout, 32);
+    memcpy(G_electroneum_vstate.dest_Bout, Bout, 32);
+    G_electroneum_vstate.dest_is_subaddress = is_subaddress;
     electroneum_generate_key_derivation(derivation, Aout, (is_subaddress && need_additional_txkeys) ? additional_txkey_sec : tx_key);
   }
 
-  //compute amount key AKout (scalar1), version is always greater than 1
-  electroneum_derivation_to_scalar(amount_key, derivation, output_index);
+  if(tx_version > 1) {
+    //compute amount key AKout (scalar1)
+    electroneum_derivation_to_scalar(amount_key, derivation, output_index);
+  }
+
   if (G_electroneum_vstate.sig_mode == TRANSACTION_CREATE_REAL) {
       if (G_electroneum_vstate.io_protocol_version == 2) {
         electroneum_sha256_outkeys_update(amount_key,32);
@@ -689,7 +860,9 @@ int electroneum_apu_generate_txout_keys(/*size_t tx_version, crypto::secret_key 
 
   //send all
   electroneum_io_discard(0);
-  electroneum_io_insert_encrypt(amount_key,32);
+  if(tx_version > 1) {
+    electroneum_io_insert_encrypt(amount_key,32);
+  }
   electroneum_io_insert(out_eph_public_key, 32);
   if (need_additional_txkeys) {
     electroneum_io_insert(additional_txkey_pub, 32);

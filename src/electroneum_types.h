@@ -1,3 +1,4 @@
+// Copyright (c) Electroneum Limited 2017-2020
 /* Copyright 2017 Cedric Mesnil <cslashm@gmail.com>, Ledger SAS
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef electroneum_TYPES_H
-#define electroneum_TYPES_H
+#ifndef ELECTRONEUM_TYPES_H
+#define ELECTRONEUM_TYPES_H
 
 #include "os_io_seproxyhal.h"
 
@@ -30,34 +31,36 @@
 /* cannot send more that F0 bytes in CCID, why? do not know for now
  *  So set up length to F0 minus 2 bytes for SW
  */
-#define electroneum_APDU_LENGTH                       0xFE
+#define ELECTRONEUM_APDU_LENGTH                       0xFE
 
 
 /* big private DO */
-#define electroneum_EXT_PRIVATE_DO_LENGTH             512
+#define ELECTRONEUM_EXT_PRIVATE_DO_LENGTH             512
 /* will be fixed..1024 is not enougth */
-#define electroneum_EXT_CARD_HOLDER_CERT_LENTH        2560
+#define ELECTRONEUM_EXT_CARD_HOLDER_CERT_LENTH        2560
 /* random choice */
-#define electroneum_EXT_CHALLENGE_LENTH               254
+#define ELECTRONEUM_EXT_CHALLENGE_LENTH               254
 
 /* --- ... --- */
-#define MAINNET_CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX             18
-#define MAINNET_CRYPTONOTE_PUBLIC_INTEGRATED_ADDRESS_BASE58_PREFIX  19
-#define MAINNET_CRYPTONOTE_PUBLIC_SUBADDRESS_BASE58_PREFIX          42
+#define MAINNET_CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX             18018
+#define MAINNET_CRYPTONOTE_PUBLIC_INTEGRATED_ADDRESS_BASE58_PREFIX  18019
+#define MAINNET_CRYPTONOTE_PUBLIC_SUBADDRESS_BASE58_PREFIX          34402
 
-#define STAGENET_CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX            24
-#define STAGENET_CRYPTONOTE_PUBLIC_INTEGRATED_ADDRESS_BASE58_PREFIX 25
-#define STAGENET_CRYPTONOTE_PUBLIC_SUBADDRESS_BASE58_PREFIX         36
+#define STAGENET_CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX            18018
+#define STAGENET_CRYPTONOTE_PUBLIC_INTEGRATED_ADDRESS_BASE58_PREFIX 18019
+#define STAGENET_CRYPTONOTE_PUBLIC_SUBADDRESS_BASE58_PREFIX         34402
 
-#define TESTNET_CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX             53
-#define TESTNET_CRYPTONOTE_PUBLIC_INTEGRATED_ADDRESS_BASE58_PREFIX  54
-#define TESTNET_CRYPTONOTE_PUBLIC_SUBADDRESS_BASE58_PREFIX          63
+#define TESTNET_CRYPTONOTE_PUBLIC_ADDRESS_BASE58_PREFIX             18018
+#define TESTNET_CRYPTONOTE_PUBLIC_INTEGRATED_ADDRESS_BASE58_PREFIX  18019
+#define TESTNET_CRYPTONOTE_PUBLIC_SUBADDRESS_BASE58_PREFIX          34402
 
 enum network_type {
-    MAINNET = 0,
-    TESTNET,
-    STAGENET,
-    FAKECHAIN
+  #ifndef ELECTRONEUM_ALPHA
+  MAINNET = 0,
+  #endif
+  TESTNET = 1,
+  STAGENET = 2,
+  FAKECHAIN = 3
 };
 
 struct electroneum_nv_state_s {
@@ -73,11 +76,11 @@ struct electroneum_nv_state_s {
   unsigned char key_mode;
 
 
+  /* spend key */
+  unsigned char b[32];
   /* view key */
   unsigned char a[32];
 
-  /* spend key */
-  unsigned char b[32];
 
   /*words*/
   #define WORDS_MAX_LENGTH 20
@@ -87,13 +90,19 @@ struct electroneum_nv_state_s {
 
 typedef struct electroneum_nv_state_s electroneum_nv_state_t;
 
-#define electroneum_IO_BUFFER_LENGTH (300)
+#define ELECTRONEUM_IO_BUFFER_LENGTH (300)
 enum device_mode {
   NONE,
   TRANSACTION_CREATE_REAL,
   TRANSACTION_CREATE_FAKE,
   TRANSACTION_PARSE
 };
+
+#define EXPORT_VIEW_KEY  0xC001BEEF
+
+#define DISP_MAIN        0x51
+#define DISP_SUB         0x52
+#define DISP_INTEGRATED  0x53
 
 struct electroneum_v_state_s {
   unsigned char   state;
@@ -113,7 +122,7 @@ struct electroneum_v_state_s {
   unsigned short  io_length;
   unsigned short  io_offset;
   unsigned short  io_mark;
-  unsigned char   io_buffer[electroneum_IO_BUFFER_LENGTH];
+  unsigned char   io_buffer[ELECTRONEUM_IO_BUFFER_LENGTH];
 
 
   unsigned int    options;
@@ -124,17 +133,19 @@ struct electroneum_v_state_s {
 
 
   unsigned int   sig_mode;
+  unsigned int   export_view_key;
 
   /* ------------------------------------------ */
   /* ---               Crypo                --- */
   /* ------------------------------------------ */
+  unsigned char b[32];
   unsigned char a[32];
   unsigned char A[32];
-  unsigned char b[32];
   unsigned char B[32];
 
   /* SPK */
   cx_aes_key_t spk;
+  unsigned char hmac_key[32];
 
   /* Tx state machine */
   struct {
@@ -161,21 +172,56 @@ struct electroneum_v_state_s {
   cx_sha256_t   sha256_commitment;
   unsigned char C[32];
 
+  unsigned int tx_ins_count;
+
+  uint64_t tx_ins_amount;
+  uint64_t tx_outs_amount;
+  unsigned int tx_fee;
+  uint64_t tx_total_amount;
+
+  unsigned char tx_prefix_hash[32];
+
+  unsigned char tx_change_idx[50];
+  unsigned int tx_outs_current_index;
+
+  unsigned char dest_Aout[32];
+  unsigned char dest_Bout[32];
+  unsigned char dest_is_subaddress;
+
   /* ------------------------------------------ */
   /* ---               UI/UX                --- */
   /* ------------------------------------------ */
+
+  #ifdef UI_NANO_X
+  char            ux_wallet_public_address[160];
+  char            ux_wallet_public_short_address[5+2+5+1];
+  #endif
+
   union {
     struct {
       /* menu 0: 95-chars + "<electroneum: >"  + null */
-      char            ux_menu[112];
-      // address to display: 95-chars + null
-      char            ux_address[96];
-      // xmr to display: max pow(2,64) unit, aka 20-chars + '0' + dot + null
+      char            ux_menu[132];
+      // address to display: 95/106-chars + null
+      char            ux_address[132];
+      // ETN to display: max pow(2,64) unit, aka 20-chars + '0' + dot + null
       char            ux_amount[23];
+      char            ux_inputs[23];
+      // addr mode
+      unsigned char disp_addr_mode;
+      //M.m address
+      unsigned int disp_addr_M;
+      unsigned int disp_addr_m;
+      //payment id
+      char payment_id[16];
     };
     struct {
       unsigned char tmp[340];
     };
+    #ifdef UI_NANO_X
+    struct {
+      char ux_words[520];
+    };
+    #endif
   };
 };
 typedef struct  electroneum_v_state_s electroneum_v_state_t;
@@ -206,6 +252,7 @@ typedef struct  electroneum_v_state_s electroneum_v_state_t;
 #define INS_RESET                           0x02
 
 #define INS_GET_KEY                         0x20
+#define INS_DISPLAY_ADDRESS                 0x21
 #define INS_PUT_KEY                         0x22
 #define INS_GET_CHACHA8_PREKEY              0x24
 #define INS_VERIFY_KEY                      0x26
@@ -218,6 +265,7 @@ typedef struct  electroneum_v_state_s electroneum_v_state_t;
 #define INS_DERIVE_SECRET_KEY               0x38
 #define INS_GEN_KEY_IMAGE                   0x3A
 #define INS_SECRET_KEY_ADD                  0x3C
+#define INS_SCALAR_MULSUB                   0x3D
 #define INS_SECRET_KEY_SUB                  0x3E
 #define INS_GENERATE_KEYPAIR                0x40
 #define INS_SECRET_SCAL_MUL_KEY             0x42
@@ -239,6 +287,8 @@ typedef struct  electroneum_v_state_s electroneum_v_state_t;
 #define INS_VALIDATE                        0x7C
 #define INS_MLSAG                           0x7E
 #define INS_CLOSE_TX                        0x80
+#define INS_PROMPT_FEE                      0x82
+#define INS_PROMPT_TX                       0x84
 
 #define INS_GET_TX_PROOF                    0xA0
 #define INS_GEN_SIGNATURE                   0xA2
@@ -247,6 +297,18 @@ typedef struct  electroneum_v_state_s electroneum_v_state_t;
 
 
 #define INS_GET_RESPONSE                    0xc0
+
+#define INS_TX_PREFIX_START                 0xD0
+#define INS_TX_PREFIX_INPUTS                0xD2
+#define INS_TX_PREFIX_OUTPUTS               0xD4
+#define INS_TX_PREFIX_OUTPUTS_SIZE          0xD6
+#define INS_TX_PREFIX_EXTRA                 0xD8
+#define INS_TX_PROMPT_FEE                   0xDA
+#define INS_TX_PROMPT_AMOUNT                0xDC
+
+#define INS_HASH_TO_SCALAR                  0xE0
+#define INS_HASH_TO_SCALAR_BATCH            0xE2
+#define INS_HASH_TO_SCALAR_INIT             0xE4
 
 /* --- OPTIONS --- */
 #define IN_OPTION_MASK                      0x000000FF
@@ -288,6 +350,7 @@ typedef struct  electroneum_v_state_s electroneum_v_state_t;
 #define SW_SECURITY_COMMITMENT_CHAIN_CONTROL 0x6913
 #define SW_SECURITY_OUTKEYS_CHAIN_CONTROL    0x6914
 #define SW_SECURITY_MAXOUTPUT_REACHED        0x6915
+#define SW_SECURITY_TRUSTED_INPUT            0x6916
 
 #define SW_CLIENT_NOT_SUPPORTED              0x6930
 

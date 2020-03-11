@@ -1,4 +1,5 @@
 ..
+   Copyright (c) Electroneum Limited 2017-2020
    Copyright 2018 Cedric Mesnil <cslashm@gmail.com>, Ledger SAS
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -23,13 +24,14 @@
 
 
 
-License
-=======
+License and Credits
+===================
 
-Author: Cedric Mesnil <cedric@ledger.fr>
+Authors: Christopher Harrison & Andre Patta
 
 License:
 
+  | Copyright (c) Electroneum Limited 2017-2020
   | Copyright 2018 Cedric Mesnil <cedric@ledger.fr>, Ledger SAS
   |
   | Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,23 +46,24 @@ License:
   | See the License for the specific language governing permissions and
   | limitations under the License.
 
+Credits:
 
+This document is a modified version of an earlier work[1],
+created by Cedric Mesnil <cslashm@gmail.com>, Ledger SAS <cedric@ledger.fr>                                                                             [1]
 
 
 Introduction
 ============
 
-electroneum application for Ledger Blue and Nano S
+How to install the Electroneum Application
+------------------------------------------
 
-
-
-How to install electroneum Application
-==================================
+This guide will explain how to use the Electroneum application for Ledger Blue and Nano S.
 
 Nano S / Blue
 -------------
 
-For both, source and binary installation, use the most recent tag.
+For both, source and binary installation, use the most recent tag[2].
 
 From Binary
 ~~~~~~~~~~~~~
@@ -87,7 +90,7 @@ The application is ready to use!
 From source
 ~~~~~~~~~~~~~
 
-Building from sources requires the the Nano S SDK 1.4.1+ on firmware 1.4.1+. See https://github.com/LedgerHQ/nanos-secure-sdk
+Building from sources requires the the Nano S SDK og-1.6.0-1 on firmware 1.6.0+. See https://github.com/LedgerHQ/nanos-secure-sdk
 
 
 Refer to the SDK documentation for the compiling/loading...
@@ -124,19 +127,19 @@ The SmartCard service must be installed. See https://smartcardservices.github.io
        In  <key>ifdProductID</key>     add the entry  <string>0x0001</string>
        In  <key>ifdFriendlyName</key>  add the entry  <string>Ledger Token</string>
   
-This 3 entries must be added at the end of each list.
+These 3 entries must be added at the end of each list.
 
 3. [Enable SIP](https://developer.apple.com/library/content/documentation/Security/Conceptual/System_Integrity_Protection_Guide/ConfiguringSystemIntegrityProtection/ConfiguringSystemIntegrityProtection.html)
 
 Windows
 ~~~~~~~
 
-SmartCard service should be already installed. Maybe you have to start it.
+SmartCard service should be already installed. However you might have to start it.
 
 
 
-Nano S electroneum application explained
-===================================
+Nano S Electroneum Application Explained
+========================================
 
 
 Menu Overview
@@ -148,7 +151,7 @@ The full menu layout is :
 | \ *Device Info*
 | Settings
 |       Change Network
-|             \ *It will reset the device*
+|             \ *It will reset the application*
 |             Abort
 |             Test Network
 |             Stage Network
@@ -157,8 +160,9 @@ The full menu layout is :
 | About 
 |      \ *electroneum*
 |      \ *(c) Ledger SAS*
-|      \ *Spec M.m*
-|      \ *App M.m.µ*
+|      \ *Spec x.y*
+|      \ *App x.y.z*
+| Quit app
 
 | Emphasis entries are not selectable and just provide information. 
 | A "**+**" after the entry label means current value.
@@ -179,7 +183,7 @@ Settings
 Change Network
 ~~~~~~~~~~~~~~
 
-Change the network pairing of the application. Some version maybe locked to Test or Stage network.
+Change the network pairing of the application. Some versions maybe locked to Test or Stage network.
 
 
 Reset
@@ -190,15 +194,16 @@ reset the application in its '*just installed*' state.
  
 
 
-Nano-S electroneum Card application usage
-=====================================
+Nano-S Electroneum Card application usage
+=========================================
 
 
-electroneum
-------
+Electroneum
+-----------
 
-The electroneum application is intended to be used with electroneum-wallet-cli 0.12.1+ on v7 network (March 2018 fork)
-Previous network are not supported and will be not. Next network version will be added on time.
+The electroneum application is intended to be used with electroneum-wallet-cli 3.2.0.0+ on v8 network[3].
+
+Future compatibility will be outlined in the Ledger repo's README.
 
 Today, the following feature are supported:
 
@@ -209,7 +214,7 @@ Today, the following feature are supported:
 - Sub-address
 
 
-So the following commands are NOT supported:
+The following commands are NOT supported:
 
 - specific send:
     - submit_transfer 
@@ -241,45 +246,43 @@ So the following commands are NOT supported:
 Those command are planned to be added in future versions
 
 
-
-
 Creating/Restoring Wallet
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-Creating or Restoring a wallet in done in the same manner as key comes from the Device. 
+Creating or Restoring a wallet is done in the same manner, as the key comes from the Device.
 
 The basic command is ``electroneum-wallet-cli --generate-from-device </path/to/wallet/directory>``
 
-When doing this you get warning message telling you are creating a new wallet. 
+When doing this you get a message telling you are creating a new wallet.
 
-This means that the restore height will be set to the current network height and all all 
-previous block will not be scanned for incoming transaction.
+This means that the restore height will be set to the current network height and all
+previous blocks will not be scanned for incoming transactions.
 
-If you want to restore a wallet with already incoming transaction you have to restore 
+If you want to restore a wallet that already has past inbound transactions you have to restore
 from a specific provided height. Why do not simply restore from genesis?
-Because electroneum is a special network in which all transactions are
+Because Electroneum is a special network in which all transactions are
 fully encrypted. That means the only way to know if a block contains a transaction for you is to decrypt
-that transaction. Start from genesis will implies decrypting the whole blockchain on the device. 
-Impossible: TOO LONG!
+that transaction. Start from genesis will implies decrypting the whole blockchain on the device.
+This will take a very long time.
 
-Finally there is last option that should be used: ``--subaddress-lookahead <Major:minor>``. By default 
+Finally there is a last option that should be used: ``--subaddress-lookahead <Major:minor>``. By default
 when creating a wallet, the client pre-computes the first 200 addresses for the first 50 accounts
 50:200. This setup take around 25 minutes. You can drastically reduce this time by using something like
 `10:50`,
 
-Finnally a suggested creation wallet command is :
+Finally a suggested command for creating a wallet is:
 
     electroneum-wallet-cli --generate-from-device </path/to/wallet/file> --subaddress-lookahead 10:50
 
-and creation wallet command is :
+adapted this command adapted to scan from a specific height :
 
     electroneum-wallet-cli --generate-from-device </path/to/wallet/file> --restore-height <height> --subaddress-lookahead 10:50
 
 
 **Note 1**: 
 
-You device must be plugged with the electroneum application launched BEFORE running the wallet.
+Your device must be plugged into your computer with the Electroneum application launched BEFORE running the wallet.
 Once the wallet is running DO NOT quit the application nor unplug the device.
 
 **Note 2**: 
@@ -290,57 +293,56 @@ Launching an existing wallet
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-Plug your device and launch the electroneum application.
+Plug your device and launch the Electroneum application.
 
 Launch your wallet as usual:
 
     electroneum-wallet-cli --wallet-file </path/to/wallet/file>
 
-On start, the device request you the authorization to export the private view key to the wallet client.
-Accepting this request make the block scan for incoming transaction identification faster. In this mode
-only your incoming transactions will be send to the device for decryption. If you do not accept ALL 
-transaction, even those not for your wallet, will be sent to the device. 
+On startup, the device requests that you authorize the export of the private view key to the wallet client.
+Accepting this request makes the block scan for incoming transactions faster. In this mode
+only your incoming transactions will be sent to the device for decryption. If you do not accept, ALL
+transactions, even those not for your wallet, will be sent to the device for review. Rejecting this disclosure
+ is more confidential however.
 
 .. image:: export_vkey.png
     :align: middle
-
-In a short, accepting will disclose the secret viewkey to the client application but make the blockchain 
-scan faster. Rejecting this disclosure is more confidential but also slower.
-
 
 Sending Funds
 ~~~~~~~~~~~~~
 
 
-Use *transfer* command normally and check your device to accept/reject fee, amount and destination.
+Use  the *transfer* command and check your device for a prompt to accept/reject fee, amount and destination.
 
-Hereafter an example with some screenshots:
+Here is an example with some screenshots:
 
 
 **Initial command**
 
-    [wallet 4ARBwk]: transfer 45WBTbvjKH8bScynj29RhY9PoWaThRDPMiL8qmiitk4wXZMikXDDwEWAr9SGvV74N7Xjof22aZumxFKrVeHP4bC7KZaoxjR 1 BEE400001D122A00
+    [wallet etnkff1]: transfer etnjxEaDFwiEFc1UqjEDF4eSrmpvM4n4xWv7eWp6Qv6
+    rF7uhEpnzWrEFzKyxBzQQ5WeXtnmg1BrP75xoPSikt2NL7Y2HGLAohs 1
+
     Wallet password: 
 
 **NanoS Interaction**
 
-After entering your password, the client prepare the transaction. Depending on your wallet and the number of destination
+After entering your password, the client will prepare the transaction. Depending on your wallet and the number of destinations
 it may take a while.
-Once the transaction is done, the device ask you to validate some information:
+Once the transaction is prepared, the device will ask you to validate some information:
 
 *Fee*
 
 .. image:: fee.png
     :align: middle
 
-Check if your ok then scroll down and select either "Accept" or "Reject".
+Check if you're ok with what is displayed and then scroll down and select either "Accept" or "Reject".
 
 .. image:: reject_accept.png
     :align: middle
 
 *Amount and destination*
 
-Then for each destination you have to check amount
+Then for each destination you have to check the amount being sent
 
 .. image:: amount.png
     :align: middle
@@ -350,23 +352,23 @@ and corresponding destination.
 .. image:: address_validation.png
     :align: middle
 
-Again check if your ok, scroll down, and select either "Accept" or "Reject".
+Again check if you're ok with this, scroll down, and select either "Accept" or "Reject".
 
 .. image:: reject_accept.png
     :align: middle
 
 **Final client interaction**
 
-Once fee and all destinations have been validated, the transaction is signed and a final agreement must be done on the 
+Once fees and all destinations have been validated, the transaction is signed and a final agreement must be done on the
 client command line:
 
    | Transaction 1/1:
    | Spending from address index 0
-   | Sending 1.000000000000.  The transaction fee is 0.002694160000
+   | Sending 1.00.  The transaction fee is 0.10
    | Is this okay?  (Y/Yes/N/No): y
-   | Transaction successfully submitted, transaction <3c18ecf2e05e5c809d74dbbdc4b4255f45e30f62cbac96e1066d379c18e6b54e>
+   | Transaction successfully submitted, transaction <834251315043845c44429fa331f564fadedc841ec6f32945059275e137c5066a>
    | You can check its status by using the `show_transfers` command.
-   | [wallet 4ARBwk]: 
+   | [wallet etnkff1]: 
 
 
 
@@ -376,5 +378,6 @@ Annexes
 References
 ----------
 
-* [electroneum]        *electroneum Project*, https://getelectroneum.org/
-* [electroneumGIT]     *electroneum Source Project*, https://github.com/electroneum-project/electroneum
+* [1] *Original Document* https://github.com/LedgerHQ/ledger-app-monero/tree/master/doc/user/
+* [2] *Ledger App Github* https://github.com/electroneum-project/electroneum
+* [3] *Blockchain Github* https://github.com/electroneum/electroneum

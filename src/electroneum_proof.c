@@ -1,3 +1,4 @@
+// Copyright (c) Electroneum Limited 2017-2020
 /* Copyright 2019 Cedric Mesnil <cslashm@gmail.com>, Ledger SAS
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -53,8 +54,7 @@ int electroneum_apdu_get_tx_proof() {
 
     electroneum_io_discard(0);
 
-    electroneum_rng(k,32);
-    electroneum_reduce(k,k);
+    electroneum_rng_mod_order(k);
     os_memmove(G_electroneum_vstate.tmp+32*0, msg, 32);
     os_memmove(G_electroneum_vstate.tmp+32*1, D, 32);
 
