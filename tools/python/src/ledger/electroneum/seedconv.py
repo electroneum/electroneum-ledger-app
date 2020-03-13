@@ -1,5 +1,5 @@
 
- #Copyright (c) Electroneum Limited 2017-2020
+ #Copyright (c) Electroneum Limited 2019-2020
 # Copyright 2018 Cedric Mesnil <cslashm@gmail.com>, Ledger SAS
  #
  # Licensed under the Apache License, Version 2.0 (the 'License');
@@ -52,7 +52,7 @@ Usage:
 def banner():
     print('''
 =============================================================
-electroneum Seed Converter v%s.%s. Copyright (c) Ledger SAS 20018. Copyright (c) Electroneum Limited 2017-2020
+electroneum Seed Converter v%s.%s. Copyright (c) Ledger SAS 20018. Copyright (c) Electroneum Limited 2019-2020
 Licensed under the Apache License, Version 2.0
 =============================================================
         '''%(MAJOR,MINOR))

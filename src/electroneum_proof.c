@@ -1,4 +1,4 @@
-// Copyright (c) Electroneum Limited 2017-2020
+// Copyright (c) Electroneum Limited 2019-2020
 /* Copyright 2019 Cedric Mesnil <cslashm@gmail.com>, Ledger SAS
  *
  * Licensed under the Apache License, Version 2.0 (the "License");

@@ -1,4 +1,4 @@
-// Copyright (c) Electroneum Limited 2017-2020
+// Copyright (c) Electroneum Limited 2019-2020
 // Copyright 2017 Cedric Mesnil <cslashm@gmail.com>, Ledger SAS
 
 Incomplete Draft of test to perform.

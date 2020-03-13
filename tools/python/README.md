@@ -1,4 +1,4 @@
-Copyright (c) Electroneum Limited 2017-2020
+Copyright (c) Electroneum Limited 2019-2020
 Copyright 2017 Cedric Mesnil <cslashm@gmail.com>, Ledger SAS
 # blue-app-electroneum tools
 
@@ -74,7 +74,7 @@ Example:
     $ PYTHONPATH="$(pwd)/src" python3 -m ledger.electroneum.seedconv offline
 
         =============================================================
-        Electroneum Seed Converter v0.9. Copyright (c) Ledger SAS 20018. Copyright (c) Electroneum Limited 2017-2020
+        Electroneum Seed Converter v0.9. Copyright (c) Ledger SAS 20018. Copyright (c) Electroneum Limited 2019-2020
         Licensed under the Apache License, Version 2.0
         =============================================================
                 
@@ -122,7 +122,7 @@ Example:
         $ PYTHONPATH=`pwd`/src  python3 -m ledger.electroneum.seedconv.py online
 
         =============================================================
-        Electroneum Seed Converter v0.9. Copyright (c) Ledger SAS 20018. Copyright (c) Electroneum Limited 2017-2020
+        Electroneum Seed Converter v0.9. Copyright (c) Ledger SAS 20018. Copyright (c) Electroneum Limited 2019-2020
         Licensed under the Apache License, Version 2.0
         =============================================================
                 
